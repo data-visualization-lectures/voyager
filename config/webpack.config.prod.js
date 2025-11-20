@@ -32,7 +32,7 @@ if (env.stringified['process.env'].NODE_ENV !== '"production"') {
 }
 
 // Note: defined here because it will be used more than once.
-const cssFilename = 'static/css/[name].[contenthash:8].css';
+const cssFilename = 'static/css/[name].[hash:8].css';
 
 // ExtractTextPlugin expects the build output to be flat.
 // (See https://github.com/webpack-contrib/extract-text-webpack-plugin/issues/27)
@@ -40,7 +40,7 @@ const cssFilename = 'static/css/[name].[contenthash:8].css';
 // To have this structure working with relative paths, we have to use custom options.
 const extractTextPluginOptions = shouldUseRelativeAssetPaths
   ? // Making sure that the publicPath goes back to to build folder.
-    { publicPath: Array(cssFilename.split('/').length).join('../') }
+  { publicPath: Array(cssFilename.split('/').length).join('../') }
   : {};
 
 // This is the production configuration.
@@ -85,7 +85,9 @@ module.exports = {
 
       // Support React Native Web
       // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
+      // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
       'react-native': 'react-native-web',
+      'node-sass': 'sass',
     },
   },
   module: {
@@ -143,25 +145,27 @@ module.exports = {
             options: {
               plugins: function () {
                 return [
-                    require("autoprefixer")
+                  require("autoprefixer")
                 ];
               }
             }
           }, {
             loader: "sass-loader",
-             options: {
-               sourceMap: true,
-               includePaths: [
-                 path.resolve(__dirname, "../node_modules/normalize-scss/sass")
-               ]
-             }
+            options: {
+              sourceMap: true,
+              sassOptions: {
+                includePaths: [
+                  path.resolve(__dirname, "../node_modules/normalize-scss/sass")
+                ]
+              }
+            }
           }]
         })
       },
 
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        use:  {
+        use: {
           loader: 'url-loader',
           options: {
             limit: 100000,

@@ -22,7 +22,6 @@ module.exports = {
       'react-dnd',
       'react-dnd-html5-backend',
       'react-redux',
-      'react-split-pane',
       'redux-thunk',
       'redux-undo',
 
@@ -67,10 +66,12 @@ module.exports = {
 
   module: {
     rules: [
-      { test: /\.tsx?$/, use: [
-        {loader: "react-hot-loader/webpack"},
-        {loader: "ts-loader"}
-      ]},
+      {
+        test: /\.tsx?$/, use: [
+          { loader: "react-hot-loader/webpack" },
+          { loader: "ts-loader" }
+        ]
+      },
       // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
       { test: /\.js$/, use: "source-map-loader", enforce: "pre" },
 
@@ -95,25 +96,27 @@ module.exports = {
             options: {
               plugins: function () {
                 return [
-                    require("autoprefixer")
+                  require("autoprefixer")
                 ];
               }
             }
           }, {
             loader: "sass-loader",
-             options: {
-               sourceMap: true,
-               includePaths: [
-                 path.resolve(__dirname, "../node_modules/normalize-scss/sass")
-               ]
-             }
+            options: {
+              sourceMap: true,
+              sassOptions: {
+                includePaths: [
+                  path.resolve(__dirname, "../node_modules/normalize-scss/sass")
+                ]
+              }
+            }
           }]
         })
       },
 
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        use:  {
+        use: {
           loader: 'url-loader',
           options: {
             limit: 100000,

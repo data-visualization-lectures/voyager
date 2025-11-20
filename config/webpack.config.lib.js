@@ -78,25 +78,27 @@ module.exports = {
             options: {
               plugins: function () {
                 return [
-                    require("autoprefixer")
+                  require("autoprefixer")
                 ];
               }
             }
           }, {
             loader: "sass-loader",
-             options: {
-               sourceMap: true,
-               includePaths: [
-                 path.resolve(__dirname, "../node_modules/normalize-scss/sass")
-               ]
-             }
+            options: {
+              sourceMap: true,
+              sassOptions: {
+                includePaths: [
+                  path.resolve(__dirname, "../node_modules/normalize-scss/sass")
+                ]
+              }
+            }
           }]
         })
       },
 
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        use:  {
+        use: {
           loader: 'url-loader',
           options: {
             limit: 100000,
