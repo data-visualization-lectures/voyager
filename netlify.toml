@@ -1,0 +1,19 @@
+# Netlify configuration for Voyager
+
+# ローカルでビルドした dist フォルダを手動デプロイする場合の設定
+# Netlify CLI を使用: netlify deploy --prod --dir=dist
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[build]
+  # ローカルビルドを使用するため、ビルドコマンドは空
+  # もしNetlify側でビルドする場合は以下をコメント解除
+  # command = "yarn build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "15"
