@@ -12,8 +12,10 @@ import {
   isFieldRangePredicate
 } from 'vega-lite/build/src/predicate';
 import {TimeUnit} from 'vega-lite/build/src/timeunit';
-import {FILTER_ADD, FILTER_MODIFY_TIME_UNIT,
-  FILTER_REMOVE, FilterAction} from '../../actions';
+import {
+  FILTER_ADD, FILTER_MODIFY_TIME_UNIT,
+  FILTER_REMOVE, FilterAction
+} from '../../actions';
 import {ActionHandler} from '../../actions/redux-action';
 import {DraggableType} from '../../constants';
 import {filterHasField, getDefaultList, getDefaultTimeRange} from '../../models/shelf/filter';
@@ -43,7 +45,7 @@ export interface FilterPanePropsBase extends ActionHandler<FilterAction> {
   schema: Schema;
 }
 
-interface FilterPaneProps extends FilterPaneDropTargetProps, FilterPanePropsBase {};
+interface FilterPaneProps extends FilterPaneDropTargetProps, FilterPanePropsBase { };
 
 class FilterPaneBase extends React.PureComponent<FilterPaneProps, {}> {
 
@@ -112,7 +114,7 @@ class FilterPaneBase extends React.PureComponent<FilterPaneProps, {}> {
           type: ExpandedType.TEMPORAL
         }}
         onFunctionChange={onFunctionChange}
-      /> ;
+      />;
     let filterComponent;
     if (isFieldRangePredicate(filter)) {
       if (fieldDef.type === ExpandedType.TEMPORAL) {
@@ -160,10 +162,10 @@ class FilterPaneBase extends React.PureComponent<FilterPaneProps, {}> {
     let styleName, text;
     if (item && !canDrop) {
       styleName = 'placeholder-disabled';
-      text = 'Cannot drop a field here';
+      text = 'ここにフィールドをドロップできません';
     } else {
       styleName = isOver ? 'placeholder-over' : item ? 'placeholder-active' : 'placeholder';
-      text = 'Drop a field here';
+      text = 'フィールドをここにドロップ';
     }
     return (
       <span styleName={styleName}>

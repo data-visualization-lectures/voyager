@@ -55,7 +55,7 @@ export class BookmarkButtonBase extends React.PureComponent<BookmarkProps, Bookm
         targetAttachment="bottom left"
       >
         <i
-          title='Bookmark'
+          title='ブックマーク'
           className="fa fa-bookmark"
           styleName={styleName}
           onClick={this.onBookmarkClick}
@@ -64,14 +64,14 @@ export class BookmarkButtonBase extends React.PureComponent<BookmarkProps, Bookm
         {
           this.state.openDialog &&
           <div styleName='bookmark-alert' ref={this.alertHandler}>
-            <div ref={this.bookmarkHandler}>Remove Bookmark?</div>
+            <div ref={this.bookmarkHandler}>ブックマークを削除しますか？</div>
             <small>Your notes will be lost.</small>
             <div>
               <a onClick={this.onBookmarkRemove}>
-                <span styleName='fa-span'><i className="fa fa-trash-o"/>&nbsp;Remove it&nbsp;&nbsp;</span>
+                <span styleName='fa-span'><i className="fa fa-trash-o" />&nbsp;Remove it&nbsp;&nbsp;</span>
               </a>
               <a onClick={this.onKeepBookmark}>
-                <span styleName='fa-span'><i className="fa fa-bookmark"/>&nbsp;Keep it&nbsp;&nbsp;</span>
+                <span styleName='fa-span'><i className="fa fa-bookmark" />&nbsp;Keep it&nbsp;&nbsp;</span>
               </a>
             </div>
           </div>

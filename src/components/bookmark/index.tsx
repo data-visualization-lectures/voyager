@@ -34,7 +34,7 @@ export class BookmarkBase extends React.PureComponent<BookmarkProps, any> {
     return (
       <div>
         <button onClick={this.openModal}>
-          <i className="fa fa-bookmark" /> Bookmarks ({this.props.bookmark.count})
+          <i className="fa fa-bookmark" /> ブックマーク ({this.props.bookmark.count})
         </button>
 
         <Modal
@@ -46,16 +46,16 @@ export class BookmarkBase extends React.PureComponent<BookmarkProps, any> {
         >
           <div className="modal-header">
             <a className="right" onClick={this.closeModal}>Close</a>
-            <h3>Bookmarks ({this.props.bookmark.count})</h3>
+            <h3>ブックマーク ({this.props.bookmark.count})</h3>
             <a styleName="bookmark-list-util" onClick={this.onClearAll}>
-              <i className="fa fa-trash-o"/>
+              <i className="fa fa-trash-o" />
               {' '}
-              Clear all
+              すべてクリア
             </a>
             <a styleName="bookmark-list-util" onClick={this.onExport}>
-              <i className="fa fa-clipboard"/>
+              <i className="fa fa-clipboard" />
               {' '}
-              Export
+              エクスポート
             </a>
           </div>
 
@@ -125,8 +125,8 @@ export class BookmarkBase extends React.PureComponent<BookmarkProps, any> {
       <div>
         {
           (bookmarkPlotListItems.length > 0) ?
-           bookmarkPlotListItems :
-           <div styleName="vis-list-empty">You have no bookmarks</div>
+            bookmarkPlotListItems :
+            <div styleName="vis-list-empty">ブックマークがありません</div>
         }
       </div>
     );

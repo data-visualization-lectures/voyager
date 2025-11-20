@@ -21,9 +21,9 @@ export class RelatedViewsButtonBase extends React.PureComponent<RelatedViewsButt
     return (
       <div styleName="right">
         <a onClick={this.onHideClick}>
-          {collapseRelatedViews ? 'Expand' : 'Collapse'}
+          {collapseRelatedViews ? '展開' : '折りたたむ'}
           &nbsp;&nbsp;
-          {collapseRelatedViews ? <i className='fa fa-toggle-up'/> : <i className='fa fa-toggle-down'/>}
+          {collapseRelatedViews ? <i className='fa fa-toggle-up' /> : <i className='fa fa-toggle-down' />}
         </a>
       </div>
     );

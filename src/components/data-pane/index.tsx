@@ -21,27 +21,27 @@ export class DataPaneBase extends React.PureComponent<DataPanelProps, {}> {
 
     const fields = fieldCount > 0 ? (
       <div styleName="data-pane-section">
-        <h3>Fields</h3>
-        <FieldList/>
+        <h3>フィールド</h3>
+        <FieldList />
       </div>) : null;
 
     const wildcardFields = wildcards !== 'disabled' && fieldCount > 0 && (
       <div styleName="data-pane-section">
-        <h3>Wildcard Fields</h3>
-        <PresetWildcardFieldList/>
+        <h3>ワイルドカードフィールド</h3>
+        <PresetWildcardFieldList />
       </div>
     );
     return (
       <div className="pane" styleName="data-pane">
-        <h2 styleName="data-pane-title">Data</h2>
+        <h2 styleName="data-pane-title">データ</h2>
         <div>
           <span styleName="current-dataset">
-            <i className="fa fa-database"/>
+            <i className="fa fa-database" />
             {' '}
             {name}
           </span>
           <span className="right">
-            {showDataSourceSelector ? <DataSelector title="Change"/> : null}
+            {showDataSourceSelector ? <DataSelector title="変更" /> : null}
           </span>
         </div>
         {fields}

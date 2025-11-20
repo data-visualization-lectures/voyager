@@ -4,9 +4,9 @@ import {connect} from 'react-redux';
 
 import Modal from 'react-modal';
 // import {default as modal} from 'react-modal';
-import { Tab, TabList, TabPanel, Tabs } from 'react-tabs';
+import {Tab, TabList, TabPanel, Tabs} from 'react-tabs';
 import * as vega from 'vega';
-import { NamedData } from 'vega-lite/build/src/data';
+import {NamedData} from 'vega-lite/build/src/data';
 
 import * as styles from './data-selector.scss';
 
@@ -21,7 +21,7 @@ import {Dataset, State} from '../../models';
 import {selectDataset} from '../../selectors';
 
 export interface DataSelectorOwnProps {
-  title: 'Change' | 'Load';
+  title: string;
 }
 
 export interface DataSelectorConnectProps {
@@ -63,14 +63,14 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
       <span styleName='data-selector'>
         <button onClick={this.openModal}>{title}</button>
         <Modal
-         isOpen={this.state.modalIsOpen}
-         onRequestClose={this.closeModal}
-         contentLabel="Data Selector"
-         styleName="modal"
-       >
+          isOpen={this.state.modalIsOpen}
+          onRequestClose={this.closeModal}
+          contentLabel="Data Selector"
+          styleName="modal"
+        >
           <div className='modal-header'>
             <a styleName='modal-close' onClick={this.closeModal}>close</a>
-            <h3>Add Dataset</h3>
+            <h3>データセットを追加</h3>
           </div>
           <Tabs className={styles['react-tabs']}>
             <TabList className={styles['tab-list']}>
@@ -92,7 +92,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
               {this.renderUrlPanel()}
             </TabPanel>
           </Tabs>
-       </Modal>
+        </Modal>
       </span>
     );
   }
@@ -208,7 +208,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
   }
 
   private onFileChange(event: any) {
-    const { handleAction } = this.props;
+    const {handleAction} = this.props;
     const reader = new FileReader();
 
     const file = event.target.files[0];

@@ -59,11 +59,11 @@ export class FunctionPickerBase extends React.PureComponent<FunctionPickerProps,
       <div styleName="function-chooser">
         {
           wildcardHandler && (
-          <label styleName="wildcard-button">
-            <input type="checkbox" onChange={this.onCheck}/> Wildcard
-          </label>
-        )}
-        <h4>Function</h4>
+            <label styleName="wildcard-button">
+              <input type="checkbox" onChange={this.onCheck} /> ワイルドカード
+            </label>
+          )}
+        <h4>関数</h4>
         {checkboxradios}
       </div>
     );

@@ -46,15 +46,15 @@ export interface ViewPaneProps extends ActionHandler<Action> {
   filters: ShelfFilter[];
 }
 
-const NO_PLOT_MESSAGE = `No specified visualization yet. ` +
-  `Start exploring by dragging a field to encoding pane ` +
-  `on the left or examining univariate summaries below.`;
+const NO_PLOT_MESSAGE = `まだ可視化が指定されていません。` +
+  `左側のエンコーディングペインにフィールドをドラッグするか、` +
+  `下の単変量サマリーを確認して探索を開始してください。`;
 
 const GROUP_BY_LABEL: {[K in ShelfGroupBy]: string} = {
-  auto: 'Automatic',
-  field: 'Field',
-  fieldTransform: 'Field and Transformations',
-  encoding: 'Visual Encodings'
+  auto: '自動',
+  field: 'フィールド',
+  fieldTransform: 'フィールドと変換',
+  encoding: 'ビジュアルエンコーディング'
 };
 
 class ViewPaneBase extends React.PureComponent<ViewPaneProps, {}> {
@@ -80,8 +80,8 @@ class ViewPaneBase extends React.PureComponent<ViewPaneProps, {}> {
           collapseRelatedViews={collapseRelatedViews}
           handleAction={handleAction}
         />
-        <h2>Related Views</h2>
-        {!collapseRelatedViews && <RelatedViews/>}
+        <h2>関連ビュー</h2>
+        {!collapseRelatedViews && <RelatedViews />}
       </div>
     );
 
@@ -89,7 +89,7 @@ class ViewPaneBase extends React.PureComponent<ViewPaneProps, {}> {
       return (
         <div styleName="view-pane">
           <div className="pane" styleName={collapseRelatedViews ? 'view-pane-specific-stretch' : 'view-pane-specific'}>
-            <h2>Specified View</h2>
+            <h2>指定されたビュー</h2>
             {this.renderSpecifiedView()}
           </div>
           {relatedViewsElement}
@@ -139,7 +139,7 @@ class ViewPaneBase extends React.PureComponent<ViewPaneProps, {}> {
 
     const options = SHELF_GROUP_BYS.map(value => {
       const label = value === 'auto' ?
-        `${GROUP_BY_LABEL[defaultGroupBy]} (Automatic)` :
+        `${GROUP_BY_LABEL[defaultGroupBy]} (自動)` :
         GROUP_BY_LABEL[value];
       return (
         <option value={value} key={value}>
@@ -151,7 +151,7 @@ class ViewPaneBase extends React.PureComponent<ViewPaneProps, {}> {
       <div className="pane" styleName="view-pane-gallery">
         <div className="right">
           <label styleName="gallery-command">
-            Showing views with different
+            異なる
             {' '}
             <select value={groupBy} onChange={this.onGroupByChange}>
               {options}
@@ -165,11 +165,11 @@ class ViewPaneBase extends React.PureComponent<ViewPaneProps, {}> {
               onChange={this.onAutoAddCountChange}
             />
             {' '}
-            Auto Add Count
+            自動的にカウントを追加
           </label>
         </div>
 
-        <h2>Specified Views</h2>
+        <h2>指定されたビュー</h2>
         <PlotList
           result={result}
           resultType="main"

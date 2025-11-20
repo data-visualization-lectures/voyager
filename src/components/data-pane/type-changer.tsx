@@ -16,7 +16,7 @@ export class TypeChangerBase extends React.PureComponent<TypeChangerProps, {}> {
     const {validTypes} = this.props;
     return (
       <div styleName='type-changer'>
-        <h4>Type</h4>
+        <h4>型</h4>
         {validTypes.map(validType => {
           return (
             <label key={validType}>

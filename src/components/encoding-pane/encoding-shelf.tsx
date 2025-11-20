@@ -43,7 +43,7 @@ export interface EncodingShelfPropsBase extends ActionHandler<SpecEncodingAction
   schema: Schema;
 }
 
-interface EncodingShelfProps extends EncodingShelfPropsBase, EncodingShelfDropTargetProps {};
+interface EncodingShelfProps extends EncodingShelfPropsBase, EncodingShelfDropTargetProps { };
 
 export interface EncodingShelfState {
   customizerIsOpened: boolean;
@@ -93,7 +93,7 @@ class EncodingShelfBase extends React.PureComponent<
           >
             {(fieldDef && !isWildcardChannelId(id) && contains(CUSTOMIZABLE_ENCODING_CHANNELS, id.channel)) ?
               <span onClick={this.toggleCustomizer} ref={this.fieldHandler}>
-                {channelName}{' '} <i className={'fa fa-caret-down'}/>
+                {channelName}{' '} <i className={'fa fa-caret-down'} />
               </span> :
               <span>
                 {channelName}
@@ -101,13 +101,13 @@ class EncodingShelfBase extends React.PureComponent<
             }
 
             {this.state.customizerIsOpened &&
-            <div ref={this.popupRefHandler}>
-              <FieldCustomizer
-                shelfId={id}
-                fieldDef={fieldDef}
-                handleAction={handleAction}
-              />
-            </div>
+              <div ref={this.popupRefHandler}>
+                <FieldCustomizer
+                  shelfId={id}
+                  fieldDef={fieldDef}
+                  handleAction={handleAction}
+                />
+              </div>
             }
           </TetherComponent>
         </div>
@@ -210,7 +210,7 @@ class EncodingShelfBase extends React.PureComponent<
     const {item, isOver} = this.props;
     return (
       <span styleName={isOver ? 'placeholder-over' : item ? 'placeholder-active' : 'placeholder'}>
-        Drop a field here
+        フィールドをここにドロップ
       </span>
     );
   }

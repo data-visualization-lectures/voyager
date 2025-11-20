@@ -16,7 +16,7 @@ import {selectResult} from '../../selectors/result';
 import {PlotList} from '../plot-list/index';
 import * as styles from './related-views.scss';
 
-export interface RelatedViewsProps extends ActionHandler<BookmarkAction|ShelfAction|ShelfPreviewAction|ResultAction> {
+export interface RelatedViewsProps extends ActionHandler<BookmarkAction | ShelfAction | ShelfPreviewAction | ResultAction> {
   results: {
     [k in ResultType]: Result
   };
@@ -41,7 +41,7 @@ export class RelatedViewsBase extends React.PureComponent<RelatedViewsProps, {}>
             {
               relatedViewType !== 'histograms' &&
               <i
-                title='Specify'
+                title='指定'
                 styleName='command'
                 className="fa fa-server"
                 onClick={this.onSpecify.bind(this, relatedViewType)}
@@ -103,5 +103,5 @@ export const RelatedViews = connect(
       bookmark: selectBookmark(state)
     };
   },
-  createDispatchHandler<BookmarkAction|ShelfAction>()
+  createDispatchHandler<BookmarkAction | ShelfAction>()
 )(CSSModules(RelatedViewsBase, styles));

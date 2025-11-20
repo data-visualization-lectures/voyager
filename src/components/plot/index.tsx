@@ -136,7 +136,7 @@ export class PlotBase extends React.PureComponent<PlotProps, PlotState> {
           onMouseEnter={this.onMouseEnter}
           onMouseLeave={this.onMouseLeave}
         >
-          <VegaLite spec={spec} logger={this.plotLogger} data={data}/>
+          <VegaLite spec={spec} logger={this.plotLogger} data={data} />
         </div>
         {notesDiv}
       </div>
@@ -251,7 +251,7 @@ export class PlotBase extends React.PureComponent<PlotProps, PlotState> {
     const channelDef = spec.encoding[channel];
     if (isFieldDef(channelDef) && isDiscrete(channelDef)) {
       return <i
-        title='Sort'
+        title='並べ替え'
         className="fa fa-sort-alpha-asc"
         styleName={channel === 'x' ? 'sort-x-command' : 'command'}
         onClick={this.onSort.bind(this, channel)}
@@ -262,7 +262,7 @@ export class PlotBase extends React.PureComponent<PlotProps, PlotState> {
 
   private renderSpecifyButton() {
     return <i
-      title='Specify'
+      title='指定'
       className="fa fa-server"
       styleName="specify-command"
       onClick={this.onSpecify}
@@ -315,7 +315,7 @@ export class PlotBase extends React.PureComponent<PlotProps, PlotState> {
       <CopyToClipboard
         onCopy={this.copied.bind(this)}
         text={JSON.stringify(this.specWithFilter, null, 2)}>
-        <i title='Copy' className='fa fa-clipboard' />
+        <i title='コピー' className='fa fa-clipboard' />
       </CopyToClipboard>
     );
   }
