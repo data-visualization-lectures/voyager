@@ -110,6 +110,7 @@ module.exports = {
         options: {
           limit: 10000,
           name: 'static/media/[name].[hash:8].[ext]',
+          esModule: false,
         },
       },
       // The notation here is somewhat confusing.
@@ -169,14 +170,20 @@ module.exports = {
           loader: 'url-loader',
           options: {
             limit: 100000,
-            mimetype: "application/font-woff"
+            mimetype: "application/font-woff",
+            esModule: false,
           }
         }
 
       },
       {
         test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        use: "url-loader"
+        use: {
+          loader: "url-loader",
+          options: {
+            esModule: false,
+          }
+        }
       }
       // ** STOP ** Are you adding a new loader?
       // Remember to add the new extension(s) to the "url" loader exclusion list.
