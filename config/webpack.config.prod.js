@@ -13,8 +13,8 @@ const getClientEnvironment = require('./env');
 
 // Webpack uses `publicPath` to determine where the app is being served from.
 // It requires a trailing slash, or the file assets will get an incorrect path.
-// We set the path base to empty string to fix asset URLs on gh-pages
-const publicPath = '';
+// We set the path base to relative path for Netlify and other hosting services
+const publicPath = './';
 // Some apps do not use client-side routing with pushState.
 // For these, "homepage" can be set to "." to enable relative asset paths.
 const shouldUseRelativeAssetPaths = publicPath === './';
