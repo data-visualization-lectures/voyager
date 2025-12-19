@@ -6,14 +6,27 @@ $padding: 8px;
   margin-right: 57px;
 }
 
-.idl-logo {
-  position: absolute;
-  right: $padding;
-  display: inline-block;
-}
+.right-controls {
+  flex: 1;
+  text-align: right;
 
-.idl-logo img {
-  width: 40px;
+  button {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    margin-left: 15px;
+    font-size: 14px;
+
+    /* Add hover effect if desired */
+    &:hover {
+      color: #333;
+    }
+
+    i {
+      margin-right: 5px;
+    }
+  }
 }
 
 .header {
