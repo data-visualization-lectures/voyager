@@ -16,4 +16,4 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "15"
+  # NODE_VERSION = "15" # Commented out to use .nvmrc (v16.16.0)
