@@ -53,8 +53,45 @@ export class HeaderBase extends React.PureComponent<HeaderProps, {}> {
     );
   }
 
-  private handleSaveProject() {
+  private async handleSaveProject() {
     const {state} = this.props;
+
+    // @ts-ignore
+    const supabase = window.supabase;
+    if (!supabase) {
+      alert("Supabase client is not initialized.");
+      return;
+    }
+    const {data: {session}} = await supabase.auth.getSession();
+
+    if (!session) {
+      if (confirm("ログインしていません。ローカルファイルとして保存しますか？\n（クラウド保存するには https://auth.dataviz.jp でログインしてください）")) {
+        this.saveLocalProject(state);
+      }
+      return;
+    }
+
+    const name = prompt("保存するプロジェクト名を入力してください", `Voyager Project ${new Date().toLocaleString()}`);
+    if (!name) return; // Cancelled
+
+    try {
+      const serializableState = toSerializable(state);
+
+      // Use CloudApi to save
+      // Dynamic import to avoid build errors if CloudApi is not yet bundled in a way webpack likes (though it should be fine)
+      const {CloudApi} = await import('../../api/cloud-api');
+
+      await CloudApi.saveProject('voyager', name, serializableState);
+
+      alert("クラウドにプロジェクトを保存しました！");
+
+    } catch (e) {
+      console.error("Failed to save project to cloud:", e);
+      alert("クラウド保存に失敗しました：" + e.message);
+    }
+  }
+
+  private saveLocalProject(state: State) {
     try {
       const serializableState = toSerializable(state);
       const jsonString = JSON.stringify(serializableState, null, 2);
@@ -69,12 +106,76 @@ export class HeaderBase extends React.PureComponent<HeaderProps, {}> {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (e) {
-      console.error("Failed to save project:", e);
+      console.error("Failed to save local project:", e);
       alert("プロジェクトの保存に失敗しました。");
     }
   }
 
-  private handleLoadProject() {
+  private async handleLoadProject() {
+    // @ts-ignore
+    const supabase = window.supabase;
+    if (!supabase) {
+      this.loadLocalProject();
+      return;
+    }
+    const {data: {session}} = await supabase.auth.getSession();
+
+    if (!session) {
+      if (confirm("ログインしていません。ローカルファイルから読み込みますか？")) {
+        this.loadLocalProject();
+      }
+      return;
+    }
+
+    if (!confirm("クラウドからプロジェクトを読み込みますか？\n（キャンセルを押すとローカルファイルを選択できます）")) {
+      this.loadLocalProject();
+      return;
+    }
+
+    try {
+      const {CloudApi} = await import('../../api/cloud-api');
+      const projects = await CloudApi.getProjects('voyager');
+
+      if (projects.length === 0) {
+        alert("保存されたプロジェクトはありません。");
+        return;
+      }
+
+      // Create a simple selection list for prompt
+      // Note: Sort by updated_at desc usually handled by API, but let's trust API.
+      const listStr = projects.map((p, i) => `[${i + 1}] ${p.name} (${new Date(p.updated_at).toLocaleString()})`).join('\n');
+
+      const selection = prompt(`読み込むプロジェクトの番号を入力してください：\n\n${listStr}`);
+      if (!selection) return;
+
+      const index = parseInt(selection, 10) - 1;
+      if (isNaN(index) || index < 0 || index >= projects.length) {
+        alert("無効な番号です。");
+        return;
+      }
+
+      const project = projects[index];
+      const projectData = await CloudApi.getProjectContent(project.id);
+
+      // Deserialize and load
+      const newState = fromSerializable(projectData);
+
+      this.props.dispatch({
+        type: SET_APPLICATION_STATE,
+        payload: {
+          state: newState
+        }
+      });
+
+      alert(`プロジェクト「${project.name}」を読み込みました。`);
+
+    } catch (e) {
+      console.error("Failed to load cloud project:", e);
+      alert("クラウドからの読み込みに失敗しました：" + e.message);
+    }
+  }
+
+  private loadLocalProject() {
     if (this.fileInput) {
       this.fileInput.click();
     }
