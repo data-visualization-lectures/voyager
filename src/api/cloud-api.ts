@@ -6,8 +6,11 @@ async function getAuthToken(): Promise<string | null> {
   // @ts-ignore
   const supabase = window.supabase;
   if (!supabase) return null;
-  const {data} = await supabase.auth.getSession();
-  return data.session?.access_token || null;
+  const result = await supabase.auth.getSession();
+  if (result.data && result.data.session) {
+    return result.data.session.access_token;
+  }
+  return null;
 }
 
 export interface CloudProject {

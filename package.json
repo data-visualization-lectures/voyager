@@ -165,5 +165,6 @@
     "coverageDirectory": "./coverage/",
     "collectCoverage": true,
     "mapCoverage": true
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }
