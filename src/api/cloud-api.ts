@@ -39,8 +39,9 @@ export const CloudApi = {
     const session = await getSession();
     if (!session || !session.user) throw new Error("Not authenticated");
 
-    // Use the explicit userId if provided, otherwise session user
+    // Explicit userId or session user
     const uid = userId || session.user.id;
+    const token = session.access_token;
 
     // @ts-ignore
     const supabase = window.supabase;
@@ -52,7 +53,7 @@ export const CloudApi = {
     const jsonPath = `${uid}/${projectId}.json`;
     const thumbPath = `${uid}/${projectId}.png`;
 
-    // 1. Upload JSON to Storage (Using Client)
+    // 1. Upload JSON to Storage
     const {error: uploadError} = await supabase.storage
       .from('user_projects')
       .upload(jsonPath, JSON.stringify(data), {
@@ -62,7 +63,7 @@ export const CloudApi = {
 
     if (uploadError) throw new Error(`Failed to upload project data: ${uploadError.message}`);
 
-    // 2. Upload Thumbnail if exists (Using Client)
+    // 2. Upload Thumbnail if exists
     let savedThumbnailPath = null;
     if (thumbnailBlob) {
       const {error: thumbError} = await supabase.storage
@@ -79,12 +80,12 @@ export const CloudApi = {
       }
     }
 
-    // 3. Save Metadata to DB (SankeyMATIC Pattern: Fetch with Query Param, NO Auth Header)
+    // 3. Save Metadata to DB (With Auth Header)
     console.log("Saving Metadata to DB...");
     const payload = {
       id: projectId,
       user_id: uid,
-      name: name,
+      name: name, // Ensure this matches DB column
       storage_path: jsonPath,
       thumbnail_path: savedThumbnailPath,
       app_name: appName,
@@ -92,14 +93,15 @@ export const CloudApi = {
       updated_at: new Date().toISOString()
     };
 
-    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?apikey=${SUPABASE_KEY}`;
+    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects`;
 
     const dbRes = await fetch(dbEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=representation'
-        // No Authorization header here, matching SankeyMATIC
+        'Prefer': 'resolution=merge-duplicates,return=representation',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(payload)
     });
@@ -113,13 +115,18 @@ export const CloudApi = {
   },
 
   async getProjects(appName: string): Promise<CloudProject[]> {
-    // SankeyMATIC Pattern: Fetch with Query Param, NO Auth Header
-    const endpoint = `${SUPABASE_URL}/rest/v1/projects?select=*&app_name=eq.${appName}&order=updated_at.desc&apikey=${SUPABASE_KEY}`;
+    const session = await getSession();
+    if (!session) throw new Error("Not authenticated");
+    const token = session.access_token;
+
+    const endpoint = `${SUPABASE_URL}/rest/v1/projects?select=*&app_name=eq.${appName}&order=updated_at.desc`;
 
     const res = await fetch(endpoint, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -131,15 +138,21 @@ export const CloudApi = {
   },
 
   async getProjectContent(id: string): Promise<any> {
+    const session = await getSession();
+    if (!session) throw new Error("Not authenticated");
+    const token = session.access_token;
+
     // @ts-ignore
     const supabase = window.supabase;
 
     // 1. Get storage_path from DB
-    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path&id=eq.${id}&apikey=${SUPABASE_KEY}`;
+    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path&id=eq.${id}`;
     const dbRes = await fetch(dbEndpoint, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -150,7 +163,7 @@ export const CloudApi = {
 
     const storagePath = rows[0].storage_path;
 
-    // 2. Download JSON from Storage (Using Client)
+    // 2. Download JSON from Storage
     const {data: blob, error: downloadError} = await supabase.storage
       .from('user_projects')
       .download(storagePath);
@@ -161,15 +174,21 @@ export const CloudApi = {
   },
 
   async deleteProject(id: string): Promise<void> {
+    const session = await getSession();
+    if (!session) throw new Error("Not authenticated");
+    const token = session.access_token;
+
     // @ts-ignore
     const supabase = window.supabase;
 
     // 1. Get paths
-    const fetchEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path,thumbnail_path&id=eq.${id}&apikey=${SUPABASE_KEY}`;
+    const fetchEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path,thumbnail_path&id=eq.${id}`;
     const fetchRes = await fetch(fetchEndpoint, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -183,11 +202,13 @@ export const CloudApi = {
     }
 
     // 2. Delete from DB
-    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?id=eq.${id}&apikey=${SUPABASE_KEY}`;
+    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?id=eq.${id}`;
     const dbRes = await fetch(dbEndpoint, {
       method: 'DELETE',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`
       }
     });
 
