@@ -122,10 +122,17 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
           });
         } else {
           console.warn("No suitable chart canvas found for thumbnail.");
+          alert("サムネイル生成エラー: チャートのCanvasが見つかりませんでした。");
         }
 
         if (thumbnailBlob) {
           console.log(`Thumbnail captured. Size: ${thumbnailBlob.size} bytes`);
+        } else {
+          console.warn("Thumbnail capture failed or resulted in null.");
+          // Only alert if we found a canvas but failed to capture. If no canvas, we already alerted.
+          if (targetCanvas) {
+            alert("サムネイル生成エラー: Canvasからの画像生成に失敗しました (Blob is null)。");
+          }
         }
       } catch (err) {
         console.error("Failed to capture thumbnail exception:", err);

@@ -68,9 +68,13 @@ export const CloudApi = {
           const filename = `${user.id}/${timestamp}_${Math.random().toString(36).substring(7)}.png`;
           await uploadFileToStorage('user_projects', filename, thumbnailBlob);
           thumbnail_path = filename;
+        } else {
+          console.error("User not found during thumbnail save");
+          alert("サムネイル保存エラー: ユーザー情報が見つかりませんでした。");
         }
       } catch (e) {
         console.error("Failed to upload thumbnail", e);
+        alert("サムネイル画像のアップロードに失敗しました: " + e.message);
         // We continue saving the project even if thumbnail fails
       }
     }
