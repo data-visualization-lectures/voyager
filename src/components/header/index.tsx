@@ -81,7 +81,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, {}> {
       // Dynamic import to avoid build errors if CloudApi is not yet bundled in a way webpack likes (though it should be fine)
       const {CloudApi} = await import('../../api/cloud-api');
 
-      await CloudApi.saveProject('voyager', name, serializableState);
+      await CloudApi.saveProject('voyager2', name, serializableState);
 
       alert("クラウドにプロジェクトを保存しました！");
 
@@ -134,7 +134,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, {}> {
 
     try {
       const {CloudApi} = await import('../../api/cloud-api');
-      const projects = await CloudApi.getProjects('voyager');
+      const projects = await CloudApi.getProjects('voyager2');
 
       if (projects.length === 0) {
         alert("保存されたプロジェクトはありません。");
