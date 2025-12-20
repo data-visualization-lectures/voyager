@@ -19,12 +19,61 @@ export interface CloudProject {
   app_name: string;
   created_at: string;
   updated_at: string;
+  thumbnail_path?: string;
+}
+
+// Helper to upload a file to Supabase Storage
+async function uploadFileToStorage(bucket: string, path: string, blob: Blob): Promise<string> {
+  // @ts-ignore
+  const supabase = window.supabase;
+  if (!supabase) throw new Error("Supabase client not found");
+
+  const {data, error} = await supabase.storage
+    .from(bucket)
+    .upload(path, blob, {
+      cacheControl: '3600',
+      upsert: true
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return data.path;
 }
 
 export const CloudApi = {
-  async saveProject(appName: string, name: string, data: any): Promise<any> {
+  async saveProject(appName: string, name: string, data: any, thumbnailBlob?: Blob): Promise<any> {
     const token = await getAuthToken();
     if (!token) throw new Error("Not authenticated");
+
+    // Generate a UUID for the project if we were creating a new one really, but here we just post to API.
+    // The API handles ID creation. However, to save the image with a deterministic path *before* we have the ID from the API might be tricky
+    // if the API is the one generating the ID.
+    // BUT, usually we want to upload the image first or in parallel?
+    // If the API generates the ID, we can't key the image by ID before calling the API.
+    // So we might need to generate a UUID here, OR let the API return the ID and then we upload (but then we need a second update call to save the path?),
+    // OR we just use a random ID for the image and send that path to the API.
+
+    // Strategy: Generate a random UUID for the image filename, upload it, then send the path to the API.
+    let thumbnail_path = null;
+    if (thumbnailBlob && token) {
+      try {
+        // @ts-ignore
+        const supabase = window.supabase;
+        const {data: {user}} = await supabase.auth.getUser();
+        if (user) {
+          const timestamp = Date.now();
+          // simple random string for filename
+          const filename = `${user.id}/${timestamp}_${Math.random().toString(36).substring(7)}.png`;
+          await uploadFileToStorage('user_projects', filename, thumbnailBlob);
+          thumbnail_path = filename;
+        }
+      } catch (e) {
+        console.error("Failed to upload thumbnail", e);
+        // We continue saving the project even if thumbnail fails
+      }
+    }
 
     const res = await fetch(`${API_BASE_URL}/api/projects`, {
       method: "POST",
@@ -35,7 +84,8 @@ export const CloudApi = {
       body: JSON.stringify({
         name,
         app_name: appName,
-        data
+        data,
+        thumbnail_path
       })
     });
 
@@ -96,5 +146,26 @@ export const CloudApi = {
     if (!res.ok) {
       throw new Error(`Failed to delete project: ${res.statusText}`);
     }
+  },
+
+  async getThumbnailUrl(path: string): Promise<string | null> {
+    const token = await getAuthToken();
+    if (!token) return null;
+
+    // @ts-ignore
+    const supabase = window.supabase;
+    if (!supabase) return null;
+
+    // Create a signed URL valid for 1 hour
+    const {data, error} = await supabase.storage
+      .from('user_projects')
+      .createSignedUrl(path, 3600);
+
+    if (error) {
+      console.error("Error creating signed url", error);
+      return null;
+    }
+
+    return data.signedUrl;
   }
 };

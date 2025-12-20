@@ -10,6 +10,11 @@ import {SET_APPLICATION_STATE} from '../../actions/state';
 import {selectData} from '../../selectors/dataset';
 import {Controls} from './controls';
 import * as styles from './header.scss';
+import {ProjectLoadModal} from './project-load-modal';
+
+export interface HeaderState {
+  loadModalIsOpen: boolean;
+}
 
 export interface HeaderProps {
   data: InlineData;
@@ -17,14 +22,19 @@ export interface HeaderProps {
   dispatch: Dispatch<State>;
 }
 
-export class HeaderBase extends React.PureComponent<HeaderProps, {}> {
+export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
   private fileInput: HTMLInputElement;
 
   constructor(props: HeaderProps) {
     super(props);
+    this.state = {
+      loadModalIsOpen: false
+    };
     this.handleSaveProject = this.handleSaveProject.bind(this);
     this.handleLoadProject = this.handleLoadProject.bind(this);
     this.onFileChange = this.onFileChange.bind(this);
+    this.closeLoadModal = this.closeLoadModal.bind(this);
+    this.onProjectLoaded = this.onProjectLoaded.bind(this);
   }
 
   public render() {
@@ -49,7 +59,13 @@ export class HeaderBase extends React.PureComponent<HeaderProps, {}> {
             <i className="fa fa-floppy-o" /> プロジェクト・ファイルの保存
           </button>
         </div>
-      </div>
+
+        <ProjectLoadModal
+          isOpen={this.state.loadModalIsOpen}
+          onRequestClose={this.closeLoadModal}
+          onLoadProject={this.onProjectLoaded}
+        />
+      </div >
     );
   }
 
@@ -77,17 +93,51 @@ export class HeaderBase extends React.PureComponent<HeaderProps, {}> {
     try {
       const serializableState = toSerializable(state);
 
+      // Capture thumbnail
+      let thumbnailBlob: Blob | null = null;
+      try {
+        const canvas = document.querySelector('.chart canvas') as HTMLCanvasElement;
+        if (canvas) {
+          // Wrap toBlob in Promise
+          thumbnailBlob = await new Promise<Blob | null>(resolve => {
+            canvas.toBlob(blob => resolve(blob), 'image/png');
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to capture thumbnail", err);
+      }
+
       // Use CloudApi to save
       // Dynamic import to avoid build errors if CloudApi is not yet bundled in a way webpack likes (though it should be fine)
       const {CloudApi} = await import('../../api/cloud-api');
 
-      await CloudApi.saveProject('voyager2', name, serializableState);
+      await CloudApi.saveProject('voyager2', name, serializableState, thumbnailBlob);
 
       alert("クラウドにプロジェクトを保存しました！");
 
     } catch (e) {
       console.error("Failed to save project to cloud:", e);
       alert("クラウド保存に失敗しました：" + e.message);
+    }
+  }
+
+  private closeLoadModal() {
+    this.setState({loadModalIsOpen: false});
+  }
+
+  private onProjectLoaded(projectContent: any) {
+    try {
+      const newState = fromSerializable(projectContent);
+      this.props.dispatch({
+        type: SET_APPLICATION_STATE,
+        payload: {
+          state: newState
+        }
+      });
+      alert("プロジェクトを読み込みました。");
+    } catch (e) {
+      console.error("Failed to parse project:", e);
+      alert("プロジェクトデータの読み込みに失敗しました。");
     }
   }
 
@@ -132,47 +182,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, {}> {
       return;
     }
 
-    try {
-      const {CloudApi} = await import('../../api/cloud-api');
-      const projects = await CloudApi.getProjects('voyager2');
-
-      if (projects.length === 0) {
-        alert("保存されたプロジェクトはありません。");
-        return;
-      }
-
-      // Create a simple selection list for prompt
-      // Note: Sort by updated_at desc usually handled by API, but let's trust API.
-      const listStr = projects.map((p, i) => `[${i + 1}] ${p.name} (${new Date(p.updated_at).toLocaleString()})`).join('\n');
-
-      const selection = prompt(`読み込むプロジェクトの番号を入力してください：\n\n${listStr}`);
-      if (!selection) return;
-
-      const index = parseInt(selection, 10) - 1;
-      if (isNaN(index) || index < 0 || index >= projects.length) {
-        alert("無効な番号です。");
-        return;
-      }
-
-      const project = projects[index];
-      const projectData = await CloudApi.getProjectContent(project.id);
-
-      // Deserialize and load
-      const newState = fromSerializable(projectData);
-
-      this.props.dispatch({
-        type: SET_APPLICATION_STATE,
-        payload: {
-          state: newState
-        }
-      });
-
-      alert(`プロジェクト「${project.name}」を読み込みました。`);
-
-    } catch (e) {
-      console.error("Failed to load cloud project:", e);
-      alert("クラウドからの読み込みに失敗しました：" + e.message);
-    }
+    this.setState({loadModalIsOpen: true});
   }
 
   private loadLocalProject() {
