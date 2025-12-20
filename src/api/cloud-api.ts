@@ -86,18 +86,24 @@ export const CloudApi = {
       }
     }
 
+
+
+    console.log("Saving project to API. Thumbnail path:", thumbnail_path);
+    const payload = {
+      name,
+      app_name: appName,
+      data,
+      thumbnail_path
+    };
+    // console.log("Payload:", payload); // Data might be huge, be careful
+
     const res = await fetch(`${API_BASE_URL}/api/projects`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify({
-        name,
-        app_name: appName,
-        data,
-        thumbnail_path
-      })
+      body: JSON.stringify(payload)
     });
 
     if (!res.ok) {
