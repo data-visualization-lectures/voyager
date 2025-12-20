@@ -136,43 +136,36 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
       // Capture thumbnail
       let thumbnailBlob: Blob | null = null;
       try {
-        // Find all canvases inside .chart elements
-        const canvases = document.querySelectorAll('.chart canvas');
-
         let targetCanvas: HTMLCanvasElement | null = null;
 
-        if (canvases.length > 0) {
-          // If multiple canvases, pick the largest one (assuming it's the main chart)
-          let maxSize = 0;
-          for (let i = 0; i < canvases.length; i++) {
-            const c = canvases[i] as HTMLCanvasElement;
-            const size = c.width * c.height; // Use pixel area
-            if (size > maxSize && c.width > 0 && c.height > 0) {
-              maxSize = size;
-              targetCanvas = c;
-            }
+        // Strategy: Find the "Specified View" container by its header
+        // Use getElementsByTagName and loop for compatibility to avoid TS errors
+        const headers = document.getElementsByTagName('h2');
+        let specifiedViewHeader: HTMLElement | null = null;
+
+        for (let i = 0; i < headers.length; i++) {
+          if (headers[i].textContent === '指定されたビュー') {
+            specifiedViewHeader = headers[i];
+            break;
           }
         }
 
+        if (specifiedViewHeader && specifiedViewHeader.parentElement) {
+          targetCanvas = specifiedViewHeader.parentElement.querySelector('canvas') as HTMLCanvasElement;
+        }
+
         if (targetCanvas) {
-          console.log(`Canvas found (size: ${targetCanvas.width}x${targetCanvas.height}), capturing thumbnail...`);
+          console.log(`Specified View Canvas found (size: ${targetCanvas.width}x${targetCanvas.height}), capturing thumbnail...`);
           // Wrap toBlob in Promise
           thumbnailBlob = await new Promise<Blob | null>(resolve => {
             targetCanvas!.toBlob(blob => resolve(blob), 'image/png');
           });
         } else {
-          console.warn("No suitable chart canvas found for thumbnail.");
-          alert("サムネイル生成エラー: チャートのCanvasが見つかりませんでした。");
+          console.warn("Specified View canvas not found. Thumbnail will be empty.");
         }
 
         if (thumbnailBlob) {
           console.log(`Thumbnail captured. Size: ${thumbnailBlob.size} bytes`);
-        } else {
-          console.warn("Thumbnail capture failed or resulted in null.");
-          // Only alert if we found a canvas but failed to capture. If no canvas, we already alerted.
-          if (targetCanvas) {
-            alert("サムネイル生成エラー: Canvasからの画像生成に失敗しました (Blob is null)。");
-          }
         }
       } catch (err) {
         console.error("Failed to capture thumbnail exception:", err);
