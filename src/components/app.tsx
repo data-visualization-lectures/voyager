@@ -37,35 +37,76 @@ export class App extends React.PureComponent<Props, {}> {
     this.update(this.props);
   }
 
+  // Flag to prevent duplicate loading
+  private isLoadingProject = false;
+
   public async componentDidMount() {
     const params = new URLSearchParams(window.location.search);
     const projectId = params.get('project_id');
 
     if (projectId) {
-      console.log('Found project_id in URL, loading...', projectId);
-      try {
-        // Dynamic import to match Header implementation
-        const {CloudApi} = await import('../api/cloud-api');
-        const projectData = await CloudApi.getProjectContent(projectId);
-        const newState = fromSerializable(projectData);
+      console.log('Found project_id in URL. Checking authentication...');
 
-        this.props.dispatch({
-          type: SET_APPLICATION_STATE,
-          payload: {
-            state: newState
+      // @ts-ignore
+      const supabase = window.supabase;
+      if (!supabase) {
+        console.error("Supabase client not found.");
+        alert("認証クライアントの初期化に失敗しました。");
+        return;
+      }
+
+      // Check current session
+      const {data} = await supabase.auth.getSession();
+      if (data.session) {
+        await this.loadCloudProject(projectId);
+      } else {
+        // Wait for auth state change
+        console.log('Waiting for authentication...');
+        const {data: {subscription}} = supabase.auth.onAuthStateChange((event: string, session: any) => {
+          if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+            if (session) {
+              this.loadCloudProject(projectId);
+              subscription.unsubscribe();
+            }
           }
         });
-
-        // Remove query param from URL without reload
-        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-        window.history.pushState({path: newUrl}, '', newUrl);
-
-        console.log('Project loaded successfully.');
-
-      } catch (e) {
-        console.error("Failed to load project from URL:", e);
-        alert("プロジェクトの読み込みに失敗しました: " + e.message);
       }
+    }
+  }
+
+  private async loadCloudProject(projectId: string) {
+    if (this.isLoadingProject) return;
+    this.isLoadingProject = true;
+
+    console.log(`Loading project ${projectId}...`);
+
+    try {
+      const {CloudApi} = await import('../api/cloud-api');
+      const projectData = await CloudApi.getProjectContent(projectId);
+      const newState = fromSerializable(projectData);
+
+      this.props.dispatch({
+        type: SET_APPLICATION_STATE,
+        payload: {
+          state: newState
+        }
+      });
+
+      // Remove query param from URL without reload
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.pushState({path: newUrl}, '', newUrl);
+
+      console.log('Project loaded successfully.');
+
+    } catch (e) {
+      console.error("Failed to load project from URL:", e);
+      let msg = e.message;
+      if (msg === 'Failed to fetch') {
+        msg = "サーバーへの接続に失敗しました (Failed to fetch)。\nCORS設定やネットワーク接続を確認してください。";
+      }
+      alert(`プロジェクトの読み込みに失敗しました。\nエラー: ${msg}`);
+    } finally {
+      this.isLoadingProject = false;
     }
   }
 
