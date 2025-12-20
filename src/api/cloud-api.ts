@@ -55,7 +55,10 @@ export const CloudApi = {
     const supabase = window.supabase;
 
     // Generate IDs
-    const projectId = uuidv4();
+    // Use crypto.randomUUID() if available (RawGraphs pattern), fallback to manual v4
+    const projectId = typeof crypto !== 'undefined' && (crypto as any).randomUUID
+      ? (crypto as any).randomUUID()
+      : uuidv4();
 
     const jsonPath = `${uid}/${projectId}.json`;
     const thumbPath = `${uid}/${projectId}.png`;
