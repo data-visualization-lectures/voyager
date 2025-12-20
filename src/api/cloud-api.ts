@@ -22,54 +22,47 @@ export interface CloudProject {
   thumbnail_path?: string;
 }
 
-// Helper to upload a file to Supabase Storage
-async function uploadFileToStorage(bucket: string, path: string, blob: Blob): Promise<string> {
+// Helper to get configuration purely from the global client
+function getDbConfig() {
   // @ts-ignore
-  const supabase = window.supabase;
-  if (!supabase) throw new Error("Supabase client not found");
+  const globalClient = window.supabase;
+  if (!globalClient) throw new Error("Supabase client not initialized");
+  return {
+    supabaseUrl: globalClient.supabaseUrl,
+    supabaseKey: globalClient.supabaseKey
+  };
+}
 
-  const {data, error} = await supabase.storage
-    .from(bucket)
-    .upload(path, blob, {
-      cacheControl: '3600',
-      upsert: true
-    });
-
-  if (error) {
-    throw error;
-  }
-
-  return data.path;
+// Helper to check session
+async function getSession() {
+  // @ts-ignore
+  const globalAuthClient = window.supabase;
+  if (!globalAuthClient) return null;
+  const {data} = await globalAuthClient.auth.getSession();
+  return data.session;
 }
 
 export const CloudApi = {
   async saveProject(appName: string, name: string, data: any, thumbnailBlob?: Blob, userId?: string): Promise<any> {
+    const session = await getSession();
+    if (!session || !session.user) throw new Error("Not authenticated");
+
+    // Use the explicit userId if provided, otherwise session user
+    const uid = userId || session.user.id;
+
     // @ts-ignore
     const supabase = window.supabase;
-    if (!supabase) throw new Error("Supabase client not found");
+    const {supabaseUrl, supabaseKey} = getDbConfig();
 
-    let uid = userId;
-    let token = null;
-    if (!uid || !token) {
-      const {data: {session}} = await supabase.auth.getSession();
-      if (session && session.user) {
-        uid = session.user.id;
-      }
-    }
-
-    if (!uid) throw new Error("User not authenticated");
-
+    // Generate IDs
     const timestamp = Date.now();
-    // We can use a deterministic ID or random. Let's use timestamp + random for uniqueness locally,
-    // but typically we might want to update an existing project if we had an ID.
-    // Since this signature doesn't take an ID, it implies "Save As New" or we generate a new ID.
-    // For now, let's generate a new ID (UUID-like) for the file.
+    // Using random string for ID
     const projectId = `${timestamp}_${Math.random().toString(36).substring(7)}`;
 
     const jsonPath = `${uid}/${projectId}.json`;
     const thumbPath = `${uid}/${projectId}.png`;
 
-    // 1. Upload JSON
+    // 1. Upload JSON to Storage (Using Client)
     const {error: uploadError} = await supabase.storage
       .from('user_projects')
       .upload(jsonPath, JSON.stringify(data), {
@@ -79,7 +72,7 @@ export const CloudApi = {
 
     if (uploadError) throw new Error(`Failed to upload project data: ${uploadError.message}`);
 
-    // 2. Upload Thumbnail if exists
+    // 2. Upload Thumbnail if exists (Using Client)
     let savedThumbnailPath = null;
     if (thumbnailBlob) {
       const {error: thumbError} = await supabase.storage
@@ -96,64 +89,82 @@ export const CloudApi = {
       }
     }
 
-    // 3. Save to DB
-    // We match the columns from rawgraphs-app-db: id, user_id, name, storage_path, thumbnail_path, app_name, created_at, updated_at
-    // But since we don't have user_id in the arguments generally, relying on RLS might be better, but explicit is good too.
-    // The `projects` table typically allows insert.
-
+    // 3. Save Metadata to DB (Using Raw Fetch to match SankeyMATIC reference)
+    console.log("Saving Metadata to DB...");
     const payload = {
+      id: projectId, // SankeyMATIC generates ID client-side and sends it
+      user_id: uid,
       name: name,
-      app_name: appName,
       storage_path: jsonPath,
       thumbnail_path: savedThumbnailPath,
-      // created_at / updated_at handled by DB defaults usually, or we can send them.
+      app_name: appName,
+      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
-    const {data: dbData, error: dbError} = await supabase
-      .from('projects')
-      .insert([payload])
-      .select()
-      .single();
+    const dbEndpoint = `${supabaseUrl}/rest/v1/projects?apikey=${supabaseKey}`;
 
-    if (dbError) throw new Error(`Failed to save project metadata: ${dbError.message}`);
+    // SankeyMATIC does NOT use Authorization header here.
+    const dbRes = await fetch(dbEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates,return=representation'
+      },
+      body: JSON.stringify(payload)
+    });
 
-    return dbData;
+    if (!dbRes.ok) {
+      throw new Error(`DB save failed: ${await dbRes.text()}`);
+    }
+
+    const resData = await dbRes.json();
+    return resData && resData.length > 0 ? resData[0] : null;
   },
 
   async getProjects(appName: string): Promise<CloudProject[]> {
-    // @ts-ignore
-    const supabase = window.supabase;
-    if (!supabase) throw new Error("Supabase client not found");
+    const {supabaseUrl, supabaseKey} = getDbConfig();
 
-    const {data, error} = await supabase
-      .from('projects')
-      .select('*')
-      .eq('app_name', appName)
-      .order('updated_at', {ascending: false});
+    // Using Raw Fetch to DB (SankeyMATIC style - no auth header)
+    const endpoint = `${supabaseUrl}/rest/v1/projects?select=*&app_name=eq.${appName}&order=updated_at.desc&apikey=${supabaseKey}`;
 
-    if (error) throw new Error(`Failed to list projects: ${error.message}`);
-    return data || [];
+    const res = await fetch(endpoint, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to list projects: ${await res.text()}`);
+    }
+
+    return await res.json();
   },
 
   async getProjectContent(id: string): Promise<any> {
     // @ts-ignore
     const supabase = window.supabase;
-    if (!supabase) throw new Error("Supabase client not found");
+    const {supabaseUrl, supabaseKey} = getDbConfig();
 
-    // 1. Get storage_path from DB (though we might already know it if we passed it, but ID is what we have)
-    const {data: project, error: dbError} = await supabase
-      .from('projects')
-      .select('storage_path')
-      .eq('id', id)
-      .single();
+    // 1. Get storage_path from DB
+    const dbEndpoint = `${supabaseUrl}/rest/v1/projects?select=storage_path&id=eq.${id}&apikey=${supabaseKey}`;
+    const dbRes = await fetch(dbEndpoint, {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json'}
+    });
 
-    if (dbError || !project) throw new Error(`Project not found: ${dbError ? dbError.message : 'No record'}`);
+    if (!dbRes.ok) throw new Error(`DB load failed: ${await dbRes.text()}`);
 
-    // 2. Download JSON
+    const rows = await dbRes.json();
+    if (!rows.length) throw new Error("Project not found");
+
+    const storagePath = rows[0].storage_path;
+
+    // 2. Download JSON from Storage (Using Client)
     const {data: blob, error: downloadError} = await supabase.storage
       .from('user_projects')
-      .download(project.storage_path);
+      .download(storagePath);
 
     if (downloadError) throw new Error(`Failed to download project content: ${downloadError.message}`);
 
@@ -163,50 +174,53 @@ export const CloudApi = {
   async deleteProject(id: string): Promise<void> {
     // @ts-ignore
     const supabase = window.supabase;
-    if (!supabase) throw new Error("Supabase client not found");
+    const {supabaseUrl, supabaseKey} = getDbConfig();
 
-    // 1. Get paths to delete
-    const {data: project, error: fetchError} = await supabase
-      .from('projects')
-      .select('storage_path, thumbnail_path')
-      .eq('id', id)
-      .single();
+    // 1. Get paths
+    const fetchEndpoint = `${supabaseUrl}/rest/v1/projects?select=storage_path,thumbnail_path&id=eq.${id}&apikey=${supabaseKey}`;
+    const fetchRes = await fetch(fetchEndpoint, {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json'}
+    });
 
-    if (fetchError) {
-      console.warn("Could not fetch project details for deletion, trying to delete DB record anyway.");
+    let pathsToDelete: string[] = [];
+    if (fetchRes.ok) {
+      const rows = await fetchRes.json();
+      if (rows.length > 0) {
+        if (rows[0].storage_path) pathsToDelete.push(rows[0].storage_path);
+        if (rows[0].thumbnail_path) pathsToDelete.push(rows[0].thumbnail_path);
+      }
     }
 
-    // 2. Delete DB record
-    const {error: deleteError} = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', id);
+    // 2. Delete from DB
+    const dbEndpoint = `${supabaseUrl}/rest/v1/projects?id=eq.${id}&apikey=${supabaseKey}`;
+    const dbRes = await fetch(dbEndpoint, {
+      method: 'DELETE',
+      headers: {'Content-Type': 'application/json'}
+    });
 
-    if (deleteError) throw new Error(`Failed to delete project: ${deleteError.message}`);
+    if (!dbRes.ok) throw new Error(`DB delete failed: ${await dbRes.text()}`);
 
-    // 3. Delete files from storage
-    if (project) {
-      const paths = [];
-      if (project.storage_path) paths.push(project.storage_path);
-      if (project.thumbnail_path) paths.push(project.thumbnail_path);
-
-      if (paths.length > 0) {
-        await supabase.storage
-          .from('user_projects')
-          .remove(paths);
-      }
+    // 3. Delete from Storage
+    if (pathsToDelete.length > 0) {
+      await supabase.storage
+        .from('user_projects')
+        .remove(pathsToDelete);
     }
   },
 
   async getThumbnailUrl(path: string): Promise<string | null> {
+    if (!path) return null;
+
     // @ts-ignore
     const supabase = window.supabase;
-    if (!supabase) return null;
+    if (supabase) {
+      const {data} = await supabase.storage
+        .from('user_projects')
+        .createSignedUrl(path, 3600);
+      return data ? data.signedUrl : null;
+    }
 
-    const {data} = await supabase.storage
-      .from('user_projects')
-      .createSignedUrl(path, 3600);
-
-    return data ? data.signedUrl : null;
+    return null;
   }
 };
