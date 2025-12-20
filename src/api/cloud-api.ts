@@ -44,145 +44,169 @@ async function uploadFileToStorage(bucket: string, path: string, blob: Blob): Pr
 
 export const CloudApi = {
   async saveProject(appName: string, name: string, data: any, thumbnailBlob?: Blob, userId?: string): Promise<any> {
-    const token = await getAuthToken();
-    if (!token) throw new Error("Not authenticated");
+    // @ts-ignore
+    const supabase = window.supabase;
+    if (!supabase) throw new Error("Supabase client not found");
 
-    // Generate a UUID for the project if we were creating a new one really, but here we just post to API.
-    // The API handles ID creation. However, to save the image with a deterministic path *before* we have the ID from the API might be tricky
-    // if the API is the one generating the ID.
-    // BUT, usually we want to upload the image first or in parallel?
-    // If the API generates the ID, we can't key the image by ID before calling the API.
-    // So we might need to generate a UUID here, OR let the API return the ID and then we upload (but then we need a second update call to save the path?),
-    // OR we just use a random ID for the image and send that path to the API.
-
-    // Strategy: Generate a random UUID for the image filename, upload it, then send the path to the API.
-    let thumbnail_path = null;
-    if (thumbnailBlob && token) {
-      try {
-        // @ts-ignore
-        // @ts-ignore
-        const supabase = window.supabase;
-
-        let uid = userId;
-        if (!uid) {
-          const {data: {user}} = await supabase.auth.getUser();
-          if (user) uid = user.id;
-        }
-
-        if (uid) {
-          const timestamp = Date.now();
-          // simple random string for filename
-          const filename = `${uid}/${timestamp}_${Math.random().toString(36).substring(7)}.png`;
-          await uploadFileToStorage('user_projects', filename, thumbnailBlob);
-          thumbnail_path = filename;
-        } else {
-          console.error("User not found during thumbnail save");
-          alert("サムネイル保存エラー: ユーザー情報が見つかりませんでした。");
-        }
-      } catch (e) {
-        console.error("Failed to upload thumbnail", e);
-        alert("サムネイル画像のアップロードに失敗しました: " + e.message);
-        // We continue saving the project even if thumbnail fails
+    let uid = userId;
+    let token = null;
+    if (!uid || !token) {
+      const {data: {session}} = await supabase.auth.getSession();
+      if (session && session.user) {
+        uid = session.user.id;
       }
     }
 
+    if (!uid) throw new Error("User not authenticated");
 
+    const timestamp = Date.now();
+    // We can use a deterministic ID or random. Let's use timestamp + random for uniqueness locally,
+    // but typically we might want to update an existing project if we had an ID.
+    // Since this signature doesn't take an ID, it implies "Save As New" or we generate a new ID.
+    // For now, let's generate a new ID (UUID-like) for the file.
+    const projectId = `${timestamp}_${Math.random().toString(36).substring(7)}`;
 
-    console.log("Saving project to API. Thumbnail path:", thumbnail_path);
-    const payload = {
-      name,
-      app_name: appName,
-      data,
-      thumbnail_path
-    };
-    // console.log("Payload:", payload); // Data might be huge, be careful
+    const jsonPath = `${uid}/${projectId}.json`;
+    const thumbPath = `${uid}/${projectId}.png`;
 
-    const res = await fetch(`${API_BASE_URL}/api/projects`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
+    // 1. Upload JSON
+    const {error: uploadError} = await supabase.storage
+      .from('user_projects')
+      .upload(jsonPath, JSON.stringify(data), {
+        upsert: true,
+        contentType: 'application/json'
+      });
 
-    if (!res.ok) {
-      throw new Error(`Failed to save project: ${res.statusText}`);
+    if (uploadError) throw new Error(`Failed to upload project data: ${uploadError.message}`);
+
+    // 2. Upload Thumbnail if exists
+    let savedThumbnailPath = null;
+    if (thumbnailBlob) {
+      const {error: thumbError} = await supabase.storage
+        .from('user_projects')
+        .upload(thumbPath, thumbnailBlob, {
+          upsert: true,
+          contentType: 'image/png'
+        });
+
+      if (thumbError) {
+        console.warn("Failed to upload thumbnail:", thumbError);
+      } else {
+        savedThumbnailPath = thumbPath;
+      }
     }
-    return res.json();
+
+    // 3. Save to DB
+    // We match the columns from rawgraphs-app-db: id, user_id, name, storage_path, thumbnail_path, app_name, created_at, updated_at
+    // But since we don't have user_id in the arguments generally, relying on RLS might be better, but explicit is good too.
+    // The `projects` table typically allows insert.
+
+    const payload = {
+      name: name,
+      app_name: appName,
+      storage_path: jsonPath,
+      thumbnail_path: savedThumbnailPath,
+      // created_at / updated_at handled by DB defaults usually, or we can send them.
+      updated_at: new Date().toISOString()
+    };
+
+    const {data: dbData, error: dbError} = await supabase
+      .from('projects')
+      .insert([payload])
+      .select()
+      .single();
+
+    if (dbError) throw new Error(`Failed to save project metadata: ${dbError.message}`);
+
+    return dbData;
   },
 
   async getProjects(appName: string): Promise<CloudProject[]> {
-    const token = await getAuthToken();
-    if (!token) throw new Error("Not authenticated");
+    // @ts-ignore
+    const supabase = window.supabase;
+    if (!supabase) throw new Error("Supabase client not found");
 
-    const res = await fetch(`${API_BASE_URL}/api/projects?app=${appName}`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    });
+    const {data, error} = await supabase
+      .from('projects')
+      .select('*')
+      .eq('app_name', appName)
+      .order('updated_at', {ascending: false});
 
-    if (!res.ok) {
-      throw new Error(`Failed to list projects: ${res.statusText}`);
-    }
-
-    // API returns the list directly
-    return res.json();
+    if (error) throw new Error(`Failed to list projects: ${error.message}`);
+    return data || [];
   },
 
   async getProjectContent(id: string): Promise<any> {
-    const token = await getAuthToken();
-    if (!token) throw new Error("Not authenticated");
+    // @ts-ignore
+    const supabase = window.supabase;
+    if (!supabase) throw new Error("Supabase client not found");
 
-    const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    });
+    // 1. Get storage_path from DB (though we might already know it if we passed it, but ID is what we have)
+    const {data: project, error: dbError} = await supabase
+      .from('projects')
+      .select('storage_path')
+      .eq('id', id)
+      .single();
 
-    if (!res.ok) {
-      throw new Error(`Failed to load project content: ${res.statusText}`);
-    }
+    if (dbError || !project) throw new Error(`Project not found: ${dbError ? dbError.message : 'No record'}`);
 
-    return res.json();
+    // 2. Download JSON
+    const {data: blob, error: downloadError} = await supabase.storage
+      .from('user_projects')
+      .download(project.storage_path);
+
+    if (downloadError) throw new Error(`Failed to download project content: ${downloadError.message}`);
+
+    return await blob.text().then(JSON.parse);
   },
 
   async deleteProject(id: string): Promise<void> {
-    const token = await getAuthToken();
-    if (!token) throw new Error("Not authenticated");
+    // @ts-ignore
+    const supabase = window.supabase;
+    if (!supabase) throw new Error("Supabase client not found");
 
-    const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Authorization": `Bearer ${token}`
+    // 1. Get paths to delete
+    const {data: project, error: fetchError} = await supabase
+      .from('projects')
+      .select('storage_path, thumbnail_path')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      console.warn("Could not fetch project details for deletion, trying to delete DB record anyway.");
+    }
+
+    // 2. Delete DB record
+    const {error: deleteError} = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) throw new Error(`Failed to delete project: ${deleteError.message}`);
+
+    // 3. Delete files from storage
+    if (project) {
+      const paths = [];
+      if (project.storage_path) paths.push(project.storage_path);
+      if (project.thumbnail_path) paths.push(project.thumbnail_path);
+
+      if (paths.length > 0) {
+        await supabase.storage
+          .from('user_projects')
+          .remove(paths);
       }
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to delete project: ${res.statusText}`);
     }
   },
 
   async getThumbnailUrl(path: string): Promise<string | null> {
-    const token = await getAuthToken();
-    if (!token) return null;
-
     // @ts-ignore
     const supabase = window.supabase;
     if (!supabase) return null;
 
-    // Create a signed URL valid for 1 hour
-    const {data, error} = await supabase.storage
+    const {data} = await supabase.storage
       .from('user_projects')
       .createSignedUrl(path, 3600);
 
-    if (error) {
-      console.error("Error creating signed url", error);
-      return null;
-    }
-
-    return data.signedUrl;
+    return data ? data.signedUrl : null;
   }
 };
