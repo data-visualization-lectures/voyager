@@ -83,14 +83,14 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
         {this.state.notification && (
           <div style={{
             position: 'fixed',
-            top: '20px',
+            top: '80px',
             left: '50%',
             transform: 'translateX(-50%)',
             backgroundColor: this.state.notification.type === 'error' ? '#d9534f' : '#5cb85c',
             color: 'white',
             padding: '10px 20px',
             borderRadius: '4px',
-            zIndex: 9999,
+            zIndex: 99999,
             boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
             fontSize: '14px',
             fontWeight: 'bold',
