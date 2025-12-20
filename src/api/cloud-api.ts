@@ -28,8 +28,7 @@ function getDbConfig() {
   const globalClient = window.supabase;
   if (!globalClient) throw new Error("Supabase client not initialized");
   return {
-    supabaseUrl: globalClient.supabaseUrl,
-    // Using the explicitly provided Anon key to ensure DB access works
+    supabaseUrl: "https://vebhoeiltxspsurqoxvl.supabase.co",
     supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlYmhvZWlsdHhzcHN1cnFveHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAyMjI2MTIsImV4cCI6MjA0NTc5ODYxMn0.sV-Xf6wP_m46D_q-XN0oZfK9NogDqD9xV5sS-n6J8c4"
   };
 }
@@ -50,6 +49,7 @@ export const CloudApi = {
 
     // Use the explicit userId if provided, otherwise session user
     const uid = userId || session.user.id;
+    const token = session.access_token;
 
     // @ts-ignore
     const supabase = window.supabase;
@@ -103,14 +103,15 @@ export const CloudApi = {
       updated_at: new Date().toISOString()
     };
 
-    const dbEndpoint = `${supabaseUrl}/rest/v1/projects?apikey=${supabaseKey}`;
+    const dbEndpoint = `${supabaseUrl}/rest/v1/projects`;
 
-    // SankeyMATIC does NOT use Authorization header here.
     const dbRes = await fetch(dbEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=representation'
+        'Prefer': 'resolution=merge-duplicates,return=representation',
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(payload)
     });
@@ -124,15 +125,21 @@ export const CloudApi = {
   },
 
   async getProjects(appName: string): Promise<CloudProject[]> {
+    const session = await getSession();
+    if (!session) throw new Error("Not authenticated");
+    const token = session.access_token;
+
     const {supabaseUrl, supabaseKey} = getDbConfig();
 
     // Using Raw Fetch to DB (SankeyMATIC style - no auth header)
-    const endpoint = `${supabaseUrl}/rest/v1/projects?select=*&app_name=eq.${appName}&order=updated_at.desc&apikey=${supabaseKey}`;
+    const endpoint = `${supabaseUrl}/rest/v1/projects?select=*&app_name=eq.${appName}&order=updated_at.desc`;
 
     const res = await fetch(endpoint, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -144,15 +151,23 @@ export const CloudApi = {
   },
 
   async getProjectContent(id: string): Promise<any> {
+    const session = await getSession();
+    if (!session) throw new Error("Not authenticated");
+    const token = session.access_token;
+
     // @ts-ignore
     const supabase = window.supabase;
     const {supabaseUrl, supabaseKey} = getDbConfig();
 
     // 1. Get storage_path from DB
-    const dbEndpoint = `${supabaseUrl}/rest/v1/projects?select=storage_path&id=eq.${id}&apikey=${supabaseKey}`;
+    const dbEndpoint = `${supabaseUrl}/rest/v1/projects?select=storage_path&id=eq.${id}`;
     const dbRes = await fetch(dbEndpoint, {
       method: 'GET',
-      headers: {'Content-Type': 'application/json'}
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${token}`
+      }
     });
 
     if (!dbRes.ok) throw new Error(`DB load failed: ${await dbRes.text()}`);
@@ -173,15 +188,23 @@ export const CloudApi = {
   },
 
   async deleteProject(id: string): Promise<void> {
+    const session = await getSession();
+    if (!session) throw new Error("Not authenticated");
+    const token = session.access_token;
+
     // @ts-ignore
     const supabase = window.supabase;
     const {supabaseUrl, supabaseKey} = getDbConfig();
 
     // 1. Get paths
-    const fetchEndpoint = `${supabaseUrl}/rest/v1/projects?select=storage_path,thumbnail_path&id=eq.${id}&apikey=${supabaseKey}`;
+    const fetchEndpoint = `${supabaseUrl}/rest/v1/projects?select=storage_path,thumbnail_path&id=eq.${id}`;
     const fetchRes = await fetch(fetchEndpoint, {
       method: 'GET',
-      headers: {'Content-Type': 'application/json'}
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${token}`
+      }
     });
 
     let pathsToDelete: string[] = [];
@@ -194,10 +217,14 @@ export const CloudApi = {
     }
 
     // 2. Delete from DB
-    const dbEndpoint = `${supabaseUrl}/rest/v1/projects?id=eq.${id}&apikey=${supabaseKey}`;
+    const dbEndpoint = `${supabaseUrl}/rest/v1/projects?id=eq.${id}`;
     const dbRes = await fetch(dbEndpoint, {
       method: 'DELETE',
-      headers: {'Content-Type': 'application/json'}
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${token}`
+      }
     });
 
     if (!dbRes.ok) throw new Error(`DB delete failed: ${await dbRes.text()}`);
