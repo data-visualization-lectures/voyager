@@ -29,7 +29,8 @@ function getDbConfig() {
   if (!globalClient) throw new Error("Supabase client not initialized");
   return {
     supabaseUrl: globalClient.supabaseUrl,
-    supabaseKey: globalClient.supabaseKey
+    // Using the explicitly provided Anon key to ensure DB access works
+    supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlYmhvZWlsdHhzcHN1cnFveHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAyMjI2MTIsImV4cCI6MjA0NTc5ODYxMn0.sV-Xf6wP_m46D_q-XN0oZfK9NogDqD9xV5sS-n6J8c4"
   };
 }
 
