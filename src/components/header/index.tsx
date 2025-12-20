@@ -96,15 +96,39 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
       // Capture thumbnail
       let thumbnailBlob: Blob | null = null;
       try {
-        const canvas = document.querySelector('.chart canvas') as HTMLCanvasElement;
-        if (canvas) {
+        // Find all canvases inside .chart elements
+        const canvases = document.querySelectorAll('.chart canvas');
+
+        let targetCanvas: HTMLCanvasElement | null = null;
+
+        if (canvases.length > 0) {
+          // If multiple canvases, pick the largest one (assuming it's the main chart)
+          let maxSize = 0;
+          for (let i = 0; i < canvases.length; i++) {
+            const c = canvases[i] as HTMLCanvasElement;
+            const size = c.width * c.height; // Use pixel area
+            if (size > maxSize && c.width > 0 && c.height > 0) {
+              maxSize = size;
+              targetCanvas = c;
+            }
+          }
+        }
+
+        if (targetCanvas) {
+          console.log(`Canvas found (size: ${targetCanvas.width}x${targetCanvas.height}), capturing thumbnail...`);
           // Wrap toBlob in Promise
           thumbnailBlob = await new Promise<Blob | null>(resolve => {
-            canvas.toBlob(blob => resolve(blob), 'image/png');
+            targetCanvas!.toBlob(blob => resolve(blob), 'image/png');
           });
+        } else {
+          console.warn("No suitable chart canvas found for thumbnail.");
+        }
+
+        if (thumbnailBlob) {
+          console.log(`Thumbnail captured. Size: ${thumbnailBlob.size} bytes`);
         }
       } catch (err) {
-        console.warn("Failed to capture thumbnail", err);
+        console.error("Failed to capture thumbnail exception:", err);
       }
 
       // Use CloudApi to save
