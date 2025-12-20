@@ -138,8 +138,9 @@ export const CloudApi = {
   },
 
   async getProjectContent(id: string): Promise<any> {
-    // @ts-ignore
-    const supabase = window.supabase;
+    const session = await getSession();
+    if (!session || !session.user) throw new Error("Not authenticated");
+    const token = session.access_token;
 
     // 1. Get storage_path from DB (RawGraphs Pattern: Query Param API Key, NO Auth Header)
     const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path&id=eq.${id}&apikey=${SUPABASE_KEY}`;
@@ -157,14 +158,20 @@ export const CloudApi = {
 
     const storagePath = rows[0].storage_path;
 
-    // 2. Download JSON from Storage
-    const {data: blob, error: downloadError} = await supabase.storage
-      .from('user_projects')
-      .download(storagePath);
+    // 2. Download JSON from Storage (RawGraphs Pattern: Fetch with Auth Header)
+    // Note: Assuming 'user_projects' bucket name as per previous code
+    const storageEndpoint = `${SUPABASE_URL}/storage/v1/object/user_projects/${storagePath}?apikey=${SUPABASE_KEY}`;
 
-    if (downloadError) throw new Error(`Failed to download project content: ${downloadError.message}`);
+    const storageRes = await fetch(storageEndpoint, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
 
-    return await blob.text().then(JSON.parse);
+    if (!storageRes.ok) throw new Error(`Failed to download project content: ${await storageRes.text()}`);
+
+    return await storageRes.json();
   },
 
   async deleteProject(id: string): Promise<void> {
