@@ -14,7 +14,7 @@ async function getAuthToken(): Promise<string | null> {
 }
 const SUPABASE_URL = "https://vebhoeiltxspsurqoxvl.supabase.co";
 // Specific Anon Key provided by user
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlYmhvZWlsdHhzcHN1cnFveHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAyMjI2MTIsImV4cCI6MjA0NTc5ODYxMn0.sV-Xf6wP_m46D_q-XN0oZfK9NogDqD9xV5sS-n6J8c4";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlYmhvZWlsdHhzcHN1cnFveHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNTY4MjMsImV4cCI6MjA4MDYzMjgyM30.5uf-D07Hb0JxL39X9yQ20P-5gFc1CRMdKWhDySrNZ0E";
 
 export interface CloudProject {
   id: string;
@@ -41,7 +41,7 @@ export const CloudApi = {
 
     // Explicit userId or session user
     const uid = userId || session.user.id;
-    const token = session.access_token;
+    const token = session.access_token; // Token is NOT used for DB operations in RawGraphs pattern
 
     // @ts-ignore
     const supabase = window.supabase;
@@ -80,7 +80,7 @@ export const CloudApi = {
       }
     }
 
-    // 3. Save Metadata to DB (With Auth Header)
+    // 3. Save Metadata to DB (RawGraphs Pattern: Query Param API Key, NO Auth Header)
     console.log("Saving Metadata to DB...");
     const payload = {
       id: projectId,
@@ -93,15 +93,13 @@ export const CloudApi = {
       updated_at: new Date().toISOString()
     };
 
-    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects`;
+    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?apikey=${SUPABASE_KEY}`;
 
     const dbRes = await fetch(dbEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=representation',
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`
+        'Prefer': 'resolution=merge-duplicates,return=representation'
       },
       body: JSON.stringify(payload)
     });
@@ -115,18 +113,13 @@ export const CloudApi = {
   },
 
   async getProjects(appName: string): Promise<CloudProject[]> {
-    const session = await getSession();
-    if (!session) throw new Error("Not authenticated");
-    const token = session.access_token;
-
-    const endpoint = `${SUPABASE_URL}/rest/v1/projects?select=*&app_name=eq.${appName}&order=updated_at.desc`;
+    // RawGraphs Pattern: Query Param API Key, NO Auth Header
+    const endpoint = `${SUPABASE_URL}/rest/v1/projects?select=*&app_name=eq.${appName}&order=updated_at.desc&apikey=${SUPABASE_KEY}`;
 
     const res = await fetch(endpoint, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       }
     });
 
@@ -138,21 +131,15 @@ export const CloudApi = {
   },
 
   async getProjectContent(id: string): Promise<any> {
-    const session = await getSession();
-    if (!session) throw new Error("Not authenticated");
-    const token = session.access_token;
-
     // @ts-ignore
     const supabase = window.supabase;
 
-    // 1. Get storage_path from DB
-    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path&id=eq.${id}`;
+    // 1. Get storage_path from DB (RawGraphs Pattern: Query Param API Key, NO Auth Header)
+    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path&id=eq.${id}&apikey=${SUPABASE_KEY}`;
     const dbRes = await fetch(dbEndpoint, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       }
     });
 
@@ -174,21 +161,15 @@ export const CloudApi = {
   },
 
   async deleteProject(id: string): Promise<void> {
-    const session = await getSession();
-    if (!session) throw new Error("Not authenticated");
-    const token = session.access_token;
-
     // @ts-ignore
     const supabase = window.supabase;
 
-    // 1. Get paths
-    const fetchEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path,thumbnail_path&id=eq.${id}`;
+    // 1. Get paths (RawGraphs Pattern: Query Param API Key, NO Auth Header)
+    const fetchEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path,thumbnail_path&id=eq.${id}&apikey=${SUPABASE_KEY}`;
     const fetchRes = await fetch(fetchEndpoint, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       }
     });
 
@@ -201,14 +182,12 @@ export const CloudApi = {
       }
     }
 
-    // 2. Delete from DB
-    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?id=eq.${id}`;
+    // 2. Delete from DB (RawGraphs Pattern: Query Param API Key, NO Auth Header)
+    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?id=eq.${id}&apikey=${SUPABASE_KEY}`;
     const dbRes = await fetch(dbEndpoint, {
       method: 'DELETE',
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       }
     });
 
