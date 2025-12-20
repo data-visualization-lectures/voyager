@@ -14,6 +14,10 @@ import {ProjectLoadModal} from './project-load-modal';
 
 export interface HeaderState {
   loadModalIsOpen: boolean;
+  notification?: {
+    message: string;
+    type: 'success' | 'error';
+  } | null;
 }
 
 export interface HeaderProps {
@@ -24,17 +28,32 @@ export interface HeaderProps {
 
 export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
   private fileInput: HTMLInputElement;
+  private notificationTimer: any;
 
   constructor(props: HeaderProps) {
     super(props);
     this.state = {
-      loadModalIsOpen: false
+      loadModalIsOpen: false,
+      notification: null
     };
     this.handleSaveProject = this.handleSaveProject.bind(this);
     this.handleLoadProject = this.handleLoadProject.bind(this);
     this.onFileChange = this.onFileChange.bind(this);
     this.closeLoadModal = this.closeLoadModal.bind(this);
     this.onProjectLoaded = this.onProjectLoaded.bind(this);
+  }
+
+  private showNotification(message: string, type: 'success' | 'error' = 'success') {
+    if (this.notificationTimer) clearTimeout(this.notificationTimer);
+
+    this.setState({
+      notification: {message, type}
+    });
+
+    // Auto fade out after 3 seconds
+    this.notificationTimer = setTimeout(() => {
+      this.setState({notification: null});
+    }, 3000);
   }
 
   public render() {
@@ -59,6 +78,27 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
             <i className="fa fa-floppy-o" /> プロジェクト・ファイルの保存
           </button>
         </div>
+
+        {/* Toast Notification */}
+        {this.state.notification && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: this.state.notification.type === 'error' ? '#d9534f' : '#5cb85c',
+            color: 'white',
+            padding: '10px 20px',
+            borderRadius: '4px',
+            zIndex: 9999,
+            boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            transition: 'opacity 0.3s ease-in-out'
+          }}>
+            {this.state.notification.message}
+          </div>
+        )}
 
         <ProjectLoadModal
           isOpen={this.state.loadModalIsOpen}
@@ -149,11 +189,11 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
         await CloudApi.saveProject('voyager2', name, serializableState, thumbnailBlob);
       }
 
-      alert("クラウドにプロジェクトを保存しました！");
+      this.showNotification("クラウドにプロジェクトを保存しました！");
 
     } catch (e) {
       console.error("Failed to save project to cloud:", e);
-      alert("クラウド保存に失敗しました：" + e.message);
+      this.showNotification("クラウド保存に失敗しました：" + e.message, 'error');
     }
   }
 
@@ -170,10 +210,10 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
           state: newState
         }
       });
-      alert("プロジェクトを読み込みました。");
+      this.showNotification("プロジェクトを読み込みました。");
     } catch (e) {
       console.error("Failed to parse project:", e);
-      alert("プロジェクトデータの読み込みに失敗しました。");
+      this.showNotification("プロジェクトデータの読み込みに失敗しました。", 'error');
     }
   }
 
