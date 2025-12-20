@@ -43,7 +43,7 @@ async function uploadFileToStorage(bucket: string, path: string, blob: Blob): Pr
 }
 
 export const CloudApi = {
-  async saveProject(appName: string, name: string, data: any, thumbnailBlob?: Blob): Promise<any> {
+  async saveProject(appName: string, name: string, data: any, thumbnailBlob?: Blob, userId?: string): Promise<any> {
     const token = await getAuthToken();
     if (!token) throw new Error("Not authenticated");
 
@@ -60,12 +60,19 @@ export const CloudApi = {
     if (thumbnailBlob && token) {
       try {
         // @ts-ignore
+        // @ts-ignore
         const supabase = window.supabase;
-        const {data: {user}} = await supabase.auth.getUser();
-        if (user) {
+
+        let uid = userId;
+        if (!uid) {
+          const {data: {user}} = await supabase.auth.getUser();
+          if (user) uid = user.id;
+        }
+
+        if (uid) {
           const timestamp = Date.now();
           // simple random string for filename
-          const filename = `${user.id}/${timestamp}_${Math.random().toString(36).substring(7)}.png`;
+          const filename = `${uid}/${timestamp}_${Math.random().toString(36).substring(7)}.png`;
           await uploadFileToStorage('user_projects', filename, thumbnailBlob);
           thumbnail_path = filename;
         } else {
