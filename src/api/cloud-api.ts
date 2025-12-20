@@ -12,6 +12,9 @@ async function getAuthToken(): Promise<string | null> {
   }
   return null;
 }
+const SUPABASE_URL = "https://vebhoeiltxspsurqoxvl.supabase.co";
+// Specific Anon Key provided by user
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlYmhvZWlsdHhzcHN1cnFveHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAyMjI2MTIsImV4cCI6MjA0NTc5ODYxMn0.sV-Xf6wP_m46D_q-XN0oZfK9NogDqD9xV5sS-n6J8c4";
 
 export interface CloudProject {
   id: string;
@@ -20,17 +23,6 @@ export interface CloudProject {
   created_at: string;
   updated_at: string;
   thumbnail_path?: string;
-}
-
-// Helper to get configuration purely from the global client
-function getDbConfig() {
-  // @ts-ignore
-  const globalClient = window.supabase;
-  if (!globalClient) throw new Error("Supabase client not initialized");
-  return {
-    supabaseUrl: "https://vebhoeiltxspsurqoxvl.supabase.co",
-    supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlYmhvZWlsdHhzcHN1cnFveHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAyMjI2MTIsImV4cCI6MjA0NTc5ODYxMn0.sV-Xf6wP_m46D_q-XN0oZfK9NogDqD9xV5sS-n6J8c4"
-  };
 }
 
 // Helper to check session
@@ -49,15 +41,12 @@ export const CloudApi = {
 
     // Use the explicit userId if provided, otherwise session user
     const uid = userId || session.user.id;
-    const token = session.access_token;
 
     // @ts-ignore
     const supabase = window.supabase;
-    const {supabaseUrl, supabaseKey} = getDbConfig();
 
     // Generate IDs
     const timestamp = Date.now();
-    // Using random string for ID
     const projectId = `${timestamp}_${Math.random().toString(36).substring(7)}`;
 
     const jsonPath = `${uid}/${projectId}.json`;
@@ -90,10 +79,10 @@ export const CloudApi = {
       }
     }
 
-    // 3. Save Metadata to DB (Using Raw Fetch to match SankeyMATIC reference)
+    // 3. Save Metadata to DB (SankeyMATIC Pattern: Fetch with Query Param, NO Auth Header)
     console.log("Saving Metadata to DB...");
     const payload = {
-      id: projectId, // SankeyMATIC generates ID client-side and sends it
+      id: projectId,
       user_id: uid,
       name: name,
       storage_path: jsonPath,
@@ -103,15 +92,14 @@ export const CloudApi = {
       updated_at: new Date().toISOString()
     };
 
-    const dbEndpoint = `${supabaseUrl}/rest/v1/projects`;
+    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?apikey=${SUPABASE_KEY}`;
 
     const dbRes = await fetch(dbEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=representation',
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${token}`
+        'Prefer': 'resolution=merge-duplicates,return=representation'
+        // No Authorization header here, matching SankeyMATIC
       },
       body: JSON.stringify(payload)
     });
@@ -125,21 +113,13 @@ export const CloudApi = {
   },
 
   async getProjects(appName: string): Promise<CloudProject[]> {
-    const session = await getSession();
-    if (!session) throw new Error("Not authenticated");
-    const token = session.access_token;
-
-    const {supabaseUrl, supabaseKey} = getDbConfig();
-
-    // Using Raw Fetch to DB (SankeyMATIC style - no auth header)
-    const endpoint = `${supabaseUrl}/rest/v1/projects?select=*&app_name=eq.${appName}&order=updated_at.desc`;
+    // SankeyMATIC Pattern: Fetch with Query Param, NO Auth Header
+    const endpoint = `${SUPABASE_URL}/rest/v1/projects?select=*&app_name=eq.${appName}&order=updated_at.desc&apikey=${SUPABASE_KEY}`;
 
     const res = await fetch(endpoint, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       }
     });
 
@@ -151,22 +131,15 @@ export const CloudApi = {
   },
 
   async getProjectContent(id: string): Promise<any> {
-    const session = await getSession();
-    if (!session) throw new Error("Not authenticated");
-    const token = session.access_token;
-
     // @ts-ignore
     const supabase = window.supabase;
-    const {supabaseUrl, supabaseKey} = getDbConfig();
 
     // 1. Get storage_path from DB
-    const dbEndpoint = `${supabaseUrl}/rest/v1/projects?select=storage_path&id=eq.${id}`;
+    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path&id=eq.${id}&apikey=${SUPABASE_KEY}`;
     const dbRes = await fetch(dbEndpoint, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       }
     });
 
@@ -188,22 +161,15 @@ export const CloudApi = {
   },
 
   async deleteProject(id: string): Promise<void> {
-    const session = await getSession();
-    if (!session) throw new Error("Not authenticated");
-    const token = session.access_token;
-
     // @ts-ignore
     const supabase = window.supabase;
-    const {supabaseUrl, supabaseKey} = getDbConfig();
 
     // 1. Get paths
-    const fetchEndpoint = `${supabaseUrl}/rest/v1/projects?select=storage_path,thumbnail_path&id=eq.${id}`;
+    const fetchEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path,thumbnail_path&id=eq.${id}&apikey=${SUPABASE_KEY}`;
     const fetchRes = await fetch(fetchEndpoint, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       }
     });
 
@@ -217,13 +183,11 @@ export const CloudApi = {
     }
 
     // 2. Delete from DB
-    const dbEndpoint = `${supabaseUrl}/rest/v1/projects?id=eq.${id}`;
+    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?id=eq.${id}&apikey=${SUPABASE_KEY}`;
     const dbRes = await fetch(dbEndpoint, {
       method: 'DELETE',
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       }
     });
 
