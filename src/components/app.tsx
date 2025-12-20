@@ -3,11 +3,11 @@ import * as React from 'react';
 import {Dispatch} from 'redux';
 import {ActionCreators} from 'redux-undo';
 import {Data} from 'vega-lite/build/src/data';
-import { FacetedCompositeUnitSpec, TopLevel } from 'vega-lite/build/src/spec';
+import {FacetedCompositeUnitSpec, TopLevel} from 'vega-lite/build/src/spec';
 import {datasetLoad, SET_APPLICATION_STATE, SET_CONFIG} from '../actions';
 import {SPEC_LOAD} from '../actions/shelf';
 import {VoyagerConfig} from '../models/config';
-import {State} from '../models/index';
+import {fromSerializable, State} from '../models/index';
 import {AppRoot} from './app-root';
 
 export interface Props extends React.Props<App> {
@@ -37,12 +37,44 @@ export class App extends React.PureComponent<Props, {}> {
     this.update(this.props);
   }
 
+  public async componentDidMount() {
+    const params = new URLSearchParams(window.location.search);
+    const projectId = params.get('project_id');
+
+    if (projectId) {
+      console.log('Found project_id in URL, loading...', projectId);
+      try {
+        // Dynamic import to match Header implementation
+        const {CloudApi} = await import('../api/cloud-api');
+        const projectData = await CloudApi.getProjectContent(projectId);
+        const newState = fromSerializable(projectData);
+
+        this.props.dispatch({
+          type: SET_APPLICATION_STATE,
+          payload: {
+            state: newState
+          }
+        });
+
+        // Remove query param from URL without reload
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.pushState({path: newUrl}, '', newUrl);
+
+        console.log('Project loaded successfully.');
+
+      } catch (e) {
+        console.error("Failed to load project from URL:", e);
+        alert("プロジェクトの読み込みに失敗しました: " + e.message);
+      }
+    }
+  }
+
   public render() {
-    return <AppRoot/>;
+    return <AppRoot />;
   }
 
   private update(nextProps: Props) {
-    const { data, config, applicationState, dispatch, spec, filename } = nextProps;
+    const {data, config, applicationState, dispatch, spec, filename} = nextProps;
     if (data) {
       this.setData(data, filename);
     }
