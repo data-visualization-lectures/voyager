@@ -34,6 +34,14 @@ async function getSession() {
   return data.session;
 }
 
+// Helper for UUID generation
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export const CloudApi = {
   async saveProject(appName: string, name: string, data: any, thumbnailBlob?: Blob, userId?: string): Promise<any> {
     const session = await getSession();
@@ -47,8 +55,7 @@ export const CloudApi = {
     const supabase = window.supabase;
 
     // Generate IDs
-    const timestamp = Date.now();
-    const projectId = `${timestamp}_${Math.random().toString(36).substring(7)}`;
+    const projectId = uuidv4();
 
     const jsonPath = `${uid}/${projectId}.json`;
     const thumbPath = `${uid}/${projectId}.png`;
