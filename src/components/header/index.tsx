@@ -127,7 +127,10 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
       return;
     }
 
-    const name = prompt("保存するプロジェクト名を入力してください", `Voyager Project ${new Date().toLocaleString()}`);
+    const now = new Date();
+    const pad = (n: number) => ('0' + n).slice(-2);
+    const defaultName = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const name = prompt("保存するプロジェクト名を入力してください", defaultName);
     if (!name) return; // Cancelled
 
     try {
