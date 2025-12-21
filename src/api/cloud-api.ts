@@ -34,92 +34,60 @@ async function getSession() {
   return data.session;
 }
 
-// Helper for UUID generation
-function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
+
+
+// Helper to convert Blob to Base64
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
   });
 }
 
 export const CloudApi = {
   async saveProject(appName: string, name: string, data: any, thumbnailBlob?: Blob, userId?: string): Promise<any> {
-    const session = await getSession();
-    if (!session || !session.user) throw new Error("Not authenticated");
+    const token = await getAuthToken();
+    if (!token) throw new Error("Not authenticated");
 
-    // Explicit userId or session user
-    const uid = userId || session.user.id;
-    const token = session.access_token; // Token is NOT used for DB operations in RawGraphs pattern
-
-    // @ts-ignore
-    const supabase = window.supabase;
-
-    // Generate IDs
-    // Use crypto.randomUUID() if available (RawGraphs pattern), fallback to manual v4
-    const projectId = typeof crypto !== 'undefined' && (crypto as any).randomUUID
-      ? (crypto as any).randomUUID()
-      : uuidv4();
-
-    const jsonPath = `${uid}/${projectId}.json`;
-    const thumbPath = `${uid}/${projectId}.png`;
-
-    // 1. Upload JSON to Storage
-    const {error: uploadError} = await supabase.storage
-      .from('user_projects')
-      .upload(jsonPath, JSON.stringify(data), {
-        upsert: true,
-        contentType: 'application/json'
-      });
-
-    if (uploadError) throw new Error(`Failed to upload project data: ${uploadError.message}`);
-
-    // 2. Upload Thumbnail if exists
-    let savedThumbnailPath = null;
+    let thumbnail: string | undefined;
     if (thumbnailBlob) {
-      const {error: thumbError} = await supabase.storage
-        .from('user_projects')
-        .upload(thumbPath, thumbnailBlob, {
-          upsert: true,
-          contentType: 'image/png'
-        });
-
-      if (thumbError) {
-        console.warn("Failed to upload thumbnail:", thumbError);
-      } else {
-        savedThumbnailPath = thumbPath;
-      }
+      thumbnail = await blobToBase64(thumbnailBlob);
     }
 
-    // 3. Save Metadata to DB (RawGraphs Pattern: Query Param API Key, NO Auth Header)
-    console.log("Saving Metadata to DB...");
     const payload = {
-      id: projectId,
-      user_id: uid,
-      name: name, // Ensure this matches DB column
-      storage_path: jsonPath,
-      thumbnail_path: savedThumbnailPath,
+      name,
       app_name: appName,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      data,
+      thumbnail
     };
 
-    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?apikey=${SUPABASE_KEY}`;
-
-    const dbRes = await fetch(dbEndpoint, {
+    const res = await fetch(`${API_BASE_URL}/api/projects`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=representation'
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(payload)
     });
 
-    if (!dbRes.ok) {
-      throw new Error(`DB save failed: ${await dbRes.text()}`);
+    if (!res.ok) {
+      let errorMessage = `Error ${res.status}: ${res.statusText}`;
+      try {
+        const errorBody = await res.json();
+        if (errorBody.error) {
+          errorMessage = errorBody.error;
+          if (errorBody.detail) errorMessage += `: ${errorBody.detail}`;
+        }
+      } catch (e) {
+        // ignore JSON parse error
+      }
+      throw new Error(errorMessage);
     }
 
-    const resData = await dbRes.json();
-    return resData && resData.length > 0 ? resData[0] : null;
+    const responseData = await res.json();
+    return responseData.project;
   },
 
   async getProjects(appName: string): Promise<CloudProject[]> {
