@@ -71,11 +71,11 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
             ref={ref => this.fileInput = ref}
             onChange={this.onFileChange}
           />
-          <button className="command" onClick={this.handleLoadProject}>
-            <i className="fa fa-folder-open" /> プロジェクト・ファイルの読込
-          </button>
           <button className="command" onClick={this.handleSaveProject}>
             <i className="fa fa-floppy-o" /> プロジェクト・ファイルの保存
+          </button>
+          <button className="command" onClick={this.handleLoadProject}>
+            <i className="fa fa-folder-open" /> プロジェクト・ファイルの読込
           </button>
         </div>
 
