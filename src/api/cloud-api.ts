@@ -12,9 +12,6 @@ async function getAuthToken(): Promise<string | null> {
   }
   return null;
 }
-const SUPABASE_URL = "https://vebhoeiltxspsurqoxvl.supabase.co";
-// Specific Anon Key provided by user
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlYmhvZWlsdHhzcHN1cnFveHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNTY4MjMsImV4cCI6MjA4MDYzMjgyM30.5uf-D07Hb0JxL39X9yQ20P-5gFc1CRMdKWhDySrNZ0E";
 
 export interface CloudProject {
   id: string;
@@ -24,17 +21,6 @@ export interface CloudProject {
   updated_at: string;
   thumbnail_path?: string;
 }
-
-// Helper to check session
-async function getSession() {
-  // @ts-ignore
-  const globalAuthClient = window.supabase;
-  if (!globalAuthClient) return null;
-  const {data} = await globalAuthClient.auth.getSession();
-  return data.session;
-}
-
-
 
 // Helper to convert Blob to Base64
 function blobToBase64(blob: Blob): Promise<string> {
@@ -91,13 +77,14 @@ export const CloudApi = {
   },
 
   async getProjects(appName: string): Promise<CloudProject[]> {
-    // RawGraphs Pattern: Query Param API Key, NO Auth Header
-    const endpoint = `${SUPABASE_URL}/rest/v1/projects?select=*&app_name=eq.${appName}&order=updated_at.desc&apikey=${SUPABASE_KEY}`;
+    const token = await getAuthToken();
+    if (!token) throw new Error("Not authenticated");
 
-    const res = await fetch(endpoint, {
+    const res = await fetch(`${API_BASE_URL}/api/projects?app=${appName}`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -105,99 +92,66 @@ export const CloudApi = {
       throw new Error(`Failed to list projects: ${await res.text()}`);
     }
 
-    return await res.json();
+    const data = await res.json();
+    return data.projects;
   },
 
   async getProjectContent(id: string): Promise<any> {
-    const session = await getSession();
-    if (!session || !session.user) throw new Error("Not authenticated");
-    const token = session.access_token;
+    const token = await getAuthToken();
+    if (!token) throw new Error("Not authenticated");
 
-    // 1. Get storage_path from DB (RawGraphs Pattern: Query Param API Key, NO Auth Header)
-    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path&id=eq.${id}&apikey=${SUPABASE_KEY}`;
-    const dbRes = await fetch(dbEndpoint, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!dbRes.ok) throw new Error(`DB load failed: ${await dbRes.text()}`);
-
-    const rows = await dbRes.json();
-    if (!rows.length) throw new Error("Project not found");
-
-    const storagePath = rows[0].storage_path;
-
-    // 2. Download JSON from Storage (RawGraphs Pattern: Fetch with Auth Header)
-    // Note: Assuming 'user_projects' bucket name as per previous code
-    const storageEndpoint = `${SUPABASE_URL}/storage/v1/object/user_projects/${storagePath}?apikey=${SUPABASE_KEY}`;
-
-    const storageRes = await fetch(storageEndpoint, {
+    const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
 
-    if (!storageRes.ok) throw new Error(`Failed to download project content: ${await storageRes.text()}`);
+    if (!res.ok) {
+      throw new Error(`Failed to download project content: ${await res.text()}`);
+    }
 
-    return await storageRes.json();
+    return await res.json();
   },
 
   async deleteProject(id: string): Promise<void> {
-    // @ts-ignore
-    const supabase = window.supabase;
+    const token = await getAuthToken();
+    if (!token) throw new Error("Not authenticated");
 
-    // 1. Get paths (RawGraphs Pattern: Query Param API Key, NO Auth Header)
-    const fetchEndpoint = `${SUPABASE_URL}/rest/v1/projects?select=storage_path,thumbnail_path&id=eq.${id}&apikey=${SUPABASE_KEY}`;
-    const fetchRes = await fetch(fetchEndpoint, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    let pathsToDelete: string[] = [];
-    if (fetchRes.ok) {
-      const rows = await fetchRes.json();
-      if (rows.length > 0) {
-        if (rows[0].storage_path) pathsToDelete.push(rows[0].storage_path);
-        if (rows[0].thumbnail_path) pathsToDelete.push(rows[0].thumbnail_path);
-      }
-    }
-
-    // 2. Delete from DB (RawGraphs Pattern: Query Param API Key, NO Auth Header)
-    const dbEndpoint = `${SUPABASE_URL}/rest/v1/projects?id=eq.${id}&apikey=${SUPABASE_KEY}`;
-    const dbRes = await fetch(dbEndpoint, {
+    const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
       method: 'DELETE',
       headers: {
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${token}`
       }
     });
 
-    if (!dbRes.ok) throw new Error(`DB delete failed: ${await dbRes.text()}`);
-
-    // 3. Delete from Storage
-    if (pathsToDelete.length > 0) {
-      await supabase.storage
-        .from('user_projects')
-        .remove(pathsToDelete);
+    if (!res.ok) {
+      throw new Error(`Failed to delete project: ${await res.text()}`);
     }
   },
 
-  async getThumbnailUrl(path: string): Promise<string | null> {
-    if (!path) return null;
+  async getThumbnailUrl(id: string): Promise<string | null> {
+    const token = await getAuthToken();
+    if (!token) return null;
 
-    // @ts-ignore
-    const supabase = window.supabase;
-    if (supabase) {
-      const {data} = await supabase.storage
-        .from('user_projects')
-        .createSignedUrl(path, 3600);
-      return data ? data.signedUrl : null;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/projects/${id}/thumbnail`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) {
+        // If 404 or other error, return null so a placeholder is used
+        return null;
+      }
+
+      const blob = await res.blob();
+      return URL.createObjectURL(blob);
+    } catch (e) {
+      console.error("Failed to fetch thumbnail", e);
+      return null;
     }
-
-    return null;
   }
 };

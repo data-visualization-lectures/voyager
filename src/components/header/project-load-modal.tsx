@@ -62,7 +62,7 @@ class ProjectLoadModalBase extends React.PureComponent<ProjectLoadModalProps, Pr
     // However, if we have many, we might want to batch. For now, simple Promise.all
     await Promise.all(projects.map(async (p) => {
       if (p.thumbnail_path) {
-        const url = await CloudApi.getThumbnailUrl(p.thumbnail_path);
+        const url = await CloudApi.getThumbnailUrl(p.id);
         if (url) {
           thumbnails[p.id] = url;
         }
