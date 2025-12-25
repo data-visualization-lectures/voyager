@@ -249,11 +249,6 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
       return;
     }
 
-    if (!confirm("クラウドからプロジェクトを読み込みますか？\n（キャンセルを押すとローカルファイルを選択できます）")) {
-      this.loadLocalProject();
-      return;
-    }
-
     this.setState({loadModalIsOpen: true});
   }
 
