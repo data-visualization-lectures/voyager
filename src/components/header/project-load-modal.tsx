@@ -114,13 +114,28 @@ class ProjectLoadModalBase extends React.PureComponent<ProjectLoadModalProps, Pr
         overlayClassName="ReactModal__Overlay" // Default or custom? Bookmark uses implicit defaults via CSS/globals usually.
         // Assuming global styles handle .voyager.ReactModal__Content etc, but we'll see.
         style={{
+          overlay: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 10000
+          },
           content: {
+            position: 'absolute',
             top: '10%',
             left: '10%',
             right: '10%',
             bottom: '10%',
-            padding: '20px',
-            overflow: 'hidden'
+            border: '1px solid #ccc',
+            background: '#fff',
+            overflow: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            borderRadius: '4px',
+            outline: 'none',
+            padding: '20px'
           }
         }}
       >
