@@ -115,14 +115,10 @@ class ProjectLoadModalBase extends React.PureComponent<ProjectLoadModalProps, Pr
         // Assuming global styles handle .voyager.ReactModal__Content etc, but we'll see.
         style={{
           content: {
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            marginRight: '-50%',
-            transform: 'translate(-50%, -50%)',
-            width: '80%',
-            height: '80%',
+            top: '10%',
+            left: '10%',
+            right: '10%',
+            bottom: '10%',
             padding: '20px',
             overflow: 'hidden'
           }
