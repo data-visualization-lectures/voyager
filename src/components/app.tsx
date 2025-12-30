@@ -48,7 +48,7 @@ export class App extends React.PureComponent<Props, {}> {
       console.log('Found project_id in URL. Checking authentication...');
 
       // @ts-ignore
-      const supabase = window.supabase;
+      const supabase = window.datavizSupabase;
       if (!supabase) {
         console.error("Supabase client not found.");
         alert("認証クライアントの初期化に失敗しました。");

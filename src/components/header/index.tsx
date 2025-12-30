@@ -113,7 +113,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
     const {state} = this.props;
 
     // @ts-ignore
-    const supabase = window.supabase;
+    const supabase = window.datavizSupabase;
     if (!supabase) {
       alert("Supabase client is not initialized.");
       return;
@@ -235,7 +235,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
 
   private async handleLoadProject() {
     // @ts-ignore
-    const supabase = window.supabase;
+    const supabase = window.datavizSupabase;
     if (!supabase) {
       this.loadLocalProject();
       return;

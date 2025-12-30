@@ -4,7 +4,7 @@ const API_BASE_URL = "https://api.dataviz.jp";
 // Helper to get the current session token
 async function getAuthToken(): Promise<string | null> {
   // @ts-ignore
-  const supabase = window.supabase;
+  const supabase = window.datavizSupabase;
   if (!supabase) return null;
   const result = await supabase.auth.getSession();
   if (result.data && result.data.session) {
