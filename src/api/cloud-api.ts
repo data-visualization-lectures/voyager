@@ -1,5 +1,6 @@
 
-const API_BASE_URL = "https://api.dataviz.jp";
+// @ts-ignore
+const getApiBaseUrl = () => window.datavizApiUrl || "https://api.dataviz.jp";
 
 // Helper to get the current session token
 async function getAuthToken(): Promise<string | null> {
@@ -49,7 +50,7 @@ export const CloudApi = {
       thumbnail
     };
 
-    const res = await fetch(`${API_BASE_URL}/api/projects`, {
+    const res = await fetch(`${getApiBaseUrl()}/api/projects`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -80,7 +81,7 @@ export const CloudApi = {
     const token = await getAuthToken();
     if (!token) throw new Error("Not authenticated");
 
-    const res = await fetch(`${API_BASE_URL}/api/projects?app=${appName}`, {
+    const res = await fetch(`${getApiBaseUrl()}/api/projects?app=${appName}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -100,7 +101,7 @@ export const CloudApi = {
     const token = await getAuthToken();
     if (!token) throw new Error("Not authenticated");
 
-    const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
+    const res = await fetch(`${getApiBaseUrl()}/api/projects/${id}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -118,7 +119,7 @@ export const CloudApi = {
     const token = await getAuthToken();
     if (!token) throw new Error("Not authenticated");
 
-    const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
+    const res = await fetch(`${getApiBaseUrl()}/api/projects/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -135,7 +136,7 @@ export const CloudApi = {
     if (!token) return null;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/projects/${id}/thumbnail`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/projects/${id}/thumbnail`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
