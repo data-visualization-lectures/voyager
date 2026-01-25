@@ -33,3 +33,4 @@ yarn start
 ## ビルドした成果物 (dist) を確認する
 npx serve -s dist
 
+http://localhost:3000/?auth_debug
