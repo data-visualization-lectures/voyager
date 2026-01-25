@@ -44,8 +44,6 @@ measureFileSizesBeforeBuild(paths.appBuild).then(previousFileSizes => {
 
   // Copy data folder
   copyDataFolder();
-  // Copy auth scripts to /dist
-  copyAuthScripts();
   // Copy scss files from /src to /build
   copyScss();
 });
@@ -118,16 +116,5 @@ function copyScss() {
         return path.endsWith('.scss');
       }
     }
-  });
-}
-
-function copyAuthScripts() {
-  const files = ['supabase.js', 'dataviz-auth-client.js'];
-  files.forEach(file => {
-    fs.copySync(
-      path.resolve(__dirname, '../', file),
-      path.resolve(paths.appBuild, file),
-      { dereference: true }
-    );
   });
 }
