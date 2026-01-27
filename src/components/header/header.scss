@@ -7,6 +7,8 @@ $padding: 8px;
 }
 
 .right-controls {
+  display: none !important;
+  /* Hidden - functionality moved to tool header */
   flex: 1;
   text-align: right;
 

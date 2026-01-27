@@ -9,7 +9,7 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LHH3HWKRSK"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
     gtag('config', 'G-LHH3HWKRSK');
@@ -30,10 +30,10 @@
 
     #root {
       height: 100%;
-      padding-top: 48px; /* Fixed header adjustment */
+      padding-top: 48px;
+      /* Fixed header adjustment */
       box-sizing: border-box;
     }
-
   </style>
 </head>
 
@@ -43,6 +43,7 @@
   <!-- Dependencies -->
   <script src="https://auth.dataviz.jp/lib/supabase.js"></script>
   <script src="https://auth.dataviz.jp/lib/dataviz-auth-client.js"></script>
+  <script src="https://auth.dataviz.jp/lib/dataviz-tool-header.js" defer></script>
   <script src="./node_modules/react/dist/react.js"></script>
   <script src="./node_modules/react-dom/dist/react-dom.js"></script>
 

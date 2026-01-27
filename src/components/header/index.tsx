@@ -1,23 +1,19 @@
 import * as React from 'react';
 import * as CSSModules from 'react-css-modules';
-import {connect} from 'react-redux';
-import {Dispatch} from 'redux';
-import {InlineData} from 'vega-lite/build/src/data';
+import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
+import { InlineData } from 'vega-lite/build/src/data';
 
 import * as logo from '../../../images/logo.png';
-import {fromSerializable, State, toSerializable} from '../../models/index';
-import {SET_APPLICATION_STATE} from '../../actions/state';
-import {selectData} from '../../selectors/dataset';
-import {Controls} from './controls';
+import { fromSerializable, State, toSerializable } from '../../models/index';
+import { SET_APPLICATION_STATE } from '../../actions/state';
+import { selectData } from '../../selectors/dataset';
+import { Controls } from './controls';
 import * as styles from './header.scss';
-import {ProjectLoadModal} from './project-load-modal';
+import { ProjectLoadModal } from './project-load-modal';
 
 export interface HeaderState {
   loadModalIsOpen: boolean;
-  notification?: {
-    message: string;
-    type: 'success' | 'error';
-  } | null;
 }
 
 export interface HeaderProps {
@@ -28,13 +24,11 @@ export interface HeaderProps {
 
 export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
   private fileInput: HTMLInputElement;
-  private notificationTimer: any;
 
   constructor(props: HeaderProps) {
     super(props);
     this.state = {
-      loadModalIsOpen: false,
-      notification: null
+      loadModalIsOpen: false
     };
     this.handleSaveProject = this.handleSaveProject.bind(this);
     this.handleLoadProject = this.handleLoadProject.bind(this);
@@ -44,20 +38,18 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
   }
 
   private showNotification(message: string, type: 'success' | 'error' = 'success') {
-    if (this.notificationTimer) clearTimeout(this.notificationTimer);
-
-    this.setState({
-      notification: {message, type}
-    });
-
-    // Auto fade out after 3 seconds
-    this.notificationTimer = setTimeout(() => {
-      this.setState({notification: null});
-    }, 3000);
+    // Use tool header's toast UI
+    const header = document.querySelector('dataviz-tool-header');
+    if (header && (header as any).showMessage) {
+      (header as any).showMessage(message, type);
+    } else {
+      // Fallback to alert if tool header not available
+      alert(message);
+    }
   }
 
   public render() {
-    const {data} = this.props;
+    const { data } = this.props;
 
     return (
       <div styleName='header'>
@@ -67,7 +59,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
           <input
             type="file"
             accept=".json"
-            style={{display: 'none'}}
+            style={{ display: 'none' }}
             ref={ref => this.fileInput = ref}
             onChange={this.onFileChange}
           />
@@ -79,26 +71,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
           </button>
         </div>
 
-        {/* Toast Notification */}
-        {this.state.notification && (
-          <div style={{
-            position: 'fixed',
-            top: '80px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: this.state.notification.type === 'error' ? '#d9534f' : '#5cb85c',
-            color: 'white',
-            padding: '10px 20px',
-            borderRadius: '4px',
-            zIndex: 99999,
-            boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            transition: 'opacity 0.3s ease-in-out'
-          }}>
-            {this.state.notification.message}
-          </div>
-        )}
+
 
         <ProjectLoadModal
           isOpen={this.state.loadModalIsOpen}
@@ -110,7 +83,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
   }
 
   private async handleSaveProject() {
-    const {state} = this.props;
+    const { state } = this.props;
 
     // @ts-ignore
     const supabase = window.datavizSupabase;
@@ -118,7 +91,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
       alert("Supabase client is not initialized.");
       return;
     }
-    const {data: {session}} = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
       if (confirm("ログインしていません。ローカルファイルとして保存しますか？\n（クラウド保存するには https://auth.dataviz.jp でログインしてください）")) {
@@ -176,7 +149,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
 
       // Use CloudApi to save
       // Dynamic import to avoid build errors if CloudApi is not yet bundled in a way webpack likes (though it should be fine)
-      const {CloudApi} = await import('../../api/cloud-api');
+      const { CloudApi } = await import('../../api/cloud-api');
 
       if (session && session.user) {
         await CloudApi.saveProject('voyager2', name, serializableState, thumbnailBlob, session.user.id);
@@ -194,7 +167,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
   }
 
   private closeLoadModal() {
-    this.setState({loadModalIsOpen: false});
+    this.setState({ loadModalIsOpen: false });
   }
 
   private onProjectLoaded(projectContent: any) {
@@ -217,7 +190,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
     try {
       const serializableState = toSerializable(state);
       const jsonString = JSON.stringify(serializableState, null, 2);
-      const blob = new Blob([jsonString], {type: "application/json"});
+      const blob = new Blob([jsonString], { type: "application/json" });
       const url = URL.createObjectURL(blob);
 
       const link = document.createElement('a');
@@ -240,7 +213,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
       this.loadLocalProject();
       return;
     }
-    const {data: {session}} = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
       if (confirm("ログインしていません。ローカルファイルから読み込みますか？")) {
@@ -249,7 +222,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
       return;
     }
 
-    this.setState({loadModalIsOpen: true});
+    this.setState({ loadModalIsOpen: true });
   }
 
   private loadLocalProject() {
@@ -297,5 +270,5 @@ export const Header = connect(
       state: state
     };
   },
-  (dispatch: Dispatch<State>) => ({dispatch})
+  (dispatch: Dispatch<State>) => ({ dispatch })
 )(CSSModules(HeaderBase, styles));

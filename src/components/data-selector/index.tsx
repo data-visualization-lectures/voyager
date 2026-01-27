@@ -1,12 +1,12 @@
 import * as React from 'react';
 import * as CSSModules from 'react-css-modules';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 
 import Modal from 'react-modal';
 // import {default as modal} from 'react-modal';
-import {Tab, TabList, TabPanel, Tabs} from 'react-tabs';
+import { Tab, TabList, TabPanel, Tabs } from 'react-tabs';
 import * as vega from 'vega';
-import {NamedData} from 'vega-lite/build/src/data';
+import { NamedData } from 'vega-lite/build/src/data';
 
 import * as styles from './data-selector.scss';
 
@@ -16,9 +16,9 @@ import {
   DatasetAsyncAction,
   datasetLoad,
 } from '../../actions';
-import {DEFAULT_DATASETS} from '../../constants';
-import {Dataset, State} from '../../models';
-import {selectDataset} from '../../selectors';
+import { DEFAULT_DATASETS } from '../../constants';
+import { Dataset, State } from '../../models';
+import { selectDataset } from '../../selectors';
 
 export interface DataSelectorOwnProps {
   title: string;
@@ -43,7 +43,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
   constructor(props: DataSelectorProps) {
     super(props);
 
-    this.state = {modalIsOpen: false, dataText: '', dataName: '', dataUrl: '', fileType: undefined};
+    this.state = { modalIsOpen: false, dataText: '', dataName: '', dataUrl: '', fileType: undefined };
 
     this.onDatasetChange = this.onDatasetChange.bind(this);
     this.openModal = this.openModal.bind(this);
@@ -57,7 +57,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
   }
 
   public render() {
-    const {title} = this.props;
+    const { title } = this.props;
 
     return (
       <span styleName='data-selector'>
@@ -74,14 +74,16 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
           </div>
           <Tabs className={styles['react-tabs']}>
             <TabList className={styles['tab-list']}>
-              <Tab className={styles.tab}>データセットを変更</Tab>
+              {/* <Tab className={styles.tab}>データセットを変更</Tab> */}
               <Tab className={styles.tab}>データを貼り付けまたはアップロード</Tab>
               <Tab className={styles.tab}>URLから</Tab>
             </TabList>
 
+            {/*
             <TabPanel className={styles['tab-panel']}>
               {this.renderDatasetPanel()}
             </TabPanel>
+            */}
             <TabPanel className={styles['tab-panel']}>
               <div>
                 {this.renderUploadPanel()}
@@ -174,7 +176,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
   }
 
   private handleFileTypeChange(event: any) {
-    this.setState({fileType: event.target.value});
+    this.setState({ fileType: event.target.value });
   }
 
   private renderPastePanel() {
@@ -208,7 +210,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
   }
 
   private onFileChange(event: any) {
-    const {handleAction} = this.props;
+    const { handleAction } = this.props;
     const reader = new FileReader();
 
     const file = event.target.files[0];
@@ -219,27 +221,27 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
 
       let values;
       try {
-        values = vega.read(lEvent.target.result, {type: format});
+        values = vega.read(lEvent.target.result, { type: format });
       } catch (err) {
         window.alert(err.message);
       }
 
-      handleAction(datasetLoad(name, {values, format}));
+      handleAction(datasetLoad(name, { values, format }));
     };
 
     reader.readAsText(file);
   }
 
   private onDataTextSubmit() {
-    const values = vega.read(this.state.dataText, {type: 'csv'});
-    this.props.handleAction(datasetLoad(this.state.dataName, {values}));
+    const values = vega.read(this.state.dataText, { type: 'csv' });
+    this.props.handleAction(datasetLoad(this.state.dataName, { values }));
   }
 
   private loadDataString(data: string) {
     const name = this.state.dataName;
     const fileType = this.state.fileType;
-    const values = vega.read(data, {type: fileType});
-    this.props.handleAction(datasetLoad(name, {values}));
+    const values = vega.read(data, { type: fileType });
+    this.props.handleAction(datasetLoad(name, { values }));
   }
 
   private onDataUrlSubmit() {
@@ -252,17 +254,17 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
   }
 
   private openModal() {
-    this.setState({modalIsOpen: true});
+    this.setState({ modalIsOpen: true });
   }
 
   private closeModal() {
-    this.setState({modalIsOpen: false});
+    this.setState({ modalIsOpen: false });
   }
 
   // https://facebook.github.io/react/docs/forms.html
   private handleTextChange(event: any) {
     const name = event.target.name;
-    this.setState({[name]: event.target.value});
+    this.setState({ [name]: event.target.value });
   }
 }
 
