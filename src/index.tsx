@@ -1,17 +1,17 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
+import {Provider} from 'react-redux';
 
 import 'font-awesome-sass-loader';
 
-import { Data } from 'vega-lite/build/src/data';
-import { App } from './components/app';
-import { VOYAGER_CONFIG } from './constants';
-import { VoyagerConfig } from './models/config';
-import { configureStore } from './store';
+import {Data} from 'vega-lite/build/src/data';
+import {App} from './components/app';
+import {VOYAGER_CONFIG} from './constants';
+import {VoyagerConfig} from './models/config';
+import {configureStore} from './store';
 
-import { datasetLoad } from './actions';
-import { DEFAULT_DATASETS } from './constants';
+import {datasetLoad} from './actions';
+import {DEFAULT_DATASETS} from './constants';
 
 const store = configureStore();
 const config: VoyagerConfig = VOYAGER_CONFIG;
@@ -61,7 +61,7 @@ customElements.whenDefined('dataviz-tool-header').then(() => {
           label: 'プロジェクトの読込',
           action: () => {
             // Trigger the load button click in the original header
-            const loadButton = document.querySelector('.header button.command:nth-of-type(2)') as HTMLButtonElement;
+            const loadButton = document.getElementById('voyager-cmd-load') as HTMLButtonElement;
             if (loadButton) {
               loadButton.click();
             }
@@ -72,7 +72,7 @@ customElements.whenDefined('dataviz-tool-header').then(() => {
           label: 'プロジェクトの保存',
           action: () => {
             // Trigger the save button click in the original header
-            const saveButton = document.querySelector('.header button.command:nth-of-type(1)') as HTMLButtonElement;
+            const saveButton = document.getElementById('voyager-cmd-save') as HTMLButtonElement;
             if (saveButton) {
               saveButton.click();
             }
