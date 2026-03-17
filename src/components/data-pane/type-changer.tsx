@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as CSSModules from 'react-css-modules';
 import {DATASET_SCHEMA_CHANGE_FIELD_TYPE, DatasetSchemaChangeFieldType} from '../../actions/dataset';
 import {ActionHandler} from '../../actions/redux-action';
+import {t} from '../../i18n';
 import * as styles from './type-changer.scss';
 
 export interface TypeChangerProps extends ActionHandler<DatasetSchemaChangeFieldType> {
@@ -16,7 +17,7 @@ export class TypeChangerBase extends React.PureComponent<TypeChangerProps, {}> {
     const {validTypes} = this.props;
     return (
       <div styleName='type-changer'>
-        <h4>型</h4>
+        <h4>{t('typeChanger.type')}</h4>
         {validTypes.map(validType => {
           return (
             <label key={validType}>

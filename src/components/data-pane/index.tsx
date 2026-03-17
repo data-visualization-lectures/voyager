@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as CSSModules from 'react-css-modules';
 import {connect} from 'react-redux';
+import {t} from '../../i18n';
 import {Dataset, State} from '../../models';
 import {VoyagerConfig} from '../../models/config';
 import {selectConfig, selectDataset} from '../../selectors/';
@@ -21,19 +22,19 @@ export class DataPaneBase extends React.PureComponent<DataPanelProps, {}> {
 
     const fields = fieldCount > 0 ? (
       <div styleName="data-pane-section">
-        <h3>フィールド</h3>
+        <h3>{t('dataPane.fields')}</h3>
         <FieldList />
       </div>) : null;
 
     const wildcardFields = wildcards !== 'disabled' && fieldCount > 0 && (
       <div styleName="data-pane-section">
-        <h3>ワイルドカードフィールド</h3>
+        <h3>{t('dataPane.wildcardFields')}</h3>
         <PresetWildcardFieldList />
       </div>
     );
     return (
       <div className="pane" styleName="data-pane">
-        <h2 styleName="data-pane-title">データ</h2>
+        <h2 styleName="data-pane-title">{t('dataPane.data')}</h2>
         <div>
           <span styleName="current-dataset">
             <i className="fa fa-database" />
@@ -41,7 +42,7 @@ export class DataPaneBase extends React.PureComponent<DataPanelProps, {}> {
             {name}
           </span>
           <span className="right">
-            {showDataSourceSelector ? <DataSelector title="変更" /> : null}
+            {showDataSourceSelector ? <DataSelector title={t('dataPane.change')} /> : null}
           </span>
         </div>
         {fields}

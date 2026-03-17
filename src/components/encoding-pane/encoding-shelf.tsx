@@ -6,6 +6,7 @@ import {ConnectDropTarget, DropTarget, DropTargetCollector, DropTargetSpec} from
 import * as TetherComponent from 'react-tether';
 import {contains} from 'vega-lite/build/src/util';
 import {ActionHandler} from '../../actions/index';
+import {t} from '../../i18n';
 import {
   SPEC_FIELD_ADD, SPEC_FIELD_MOVE, SPEC_FIELD_REMOVE, SPEC_FUNCTION_ADD_WILDCARD,
   SPEC_FUNCTION_CHANGE, SPEC_FUNCTION_DISABLE_WILDCARD, SPEC_FUNCTION_ENABLE_WILDCARD,
@@ -210,7 +211,7 @@ class EncodingShelfBase extends React.PureComponent<
     const {item, isOver} = this.props;
     return (
       <span styleName={isOver ? 'placeholder-over' : item ? 'placeholder-active' : 'placeholder'}>
-        フィールドをここにドロップ
+        {t('encoding.dropFieldHere')}
       </span>
     );
   }

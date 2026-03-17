@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as CSSModules from 'react-css-modules';
 import {TimeUnit} from 'vega-lite/build/src/timeunit';
 import {contains} from 'vega-lite/build/src/util';
+import {t} from '../../i18n';
 import {ShelfFunction} from '../../models/shelf';
 import {ShelfFieldDef} from '../../models/shelf';
 import {getSupportedFunction} from '../../models/shelf';
@@ -60,10 +61,10 @@ export class FunctionPickerBase extends React.PureComponent<FunctionPickerProps,
         {
           wildcardHandler && (
             <label styleName="wildcard-button">
-              <input type="checkbox" onChange={this.onCheck} /> ワイルドカード
+              <input type="checkbox" onChange={this.onCheck} /> {t('functionPicker.wildcard')}
             </label>
           )}
-        <h4>関数</h4>
+        <h4>{t('functionPicker.function')}</h4>
         {checkboxradios}
       </div>
     );

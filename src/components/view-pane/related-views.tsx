@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {BookmarkAction} from '../../actions/bookmark';
 import {ActionHandler, createDispatchHandler} from '../../actions/redux-action';
 import {ResultAction} from '../../actions/result';
+import {t} from '../../i18n';
 import {ShelfAction} from '../../actions/shelf';
 import {SHELF_PREVIEW_DISABLE, SHELF_PREVIEW_QUERY, ShelfPreviewAction} from '../../actions/shelf-preview';
 import {SHELF_LOAD_QUERY} from '../../actions/shelf/index';
@@ -41,7 +42,7 @@ export class RelatedViewsBase extends React.PureComponent<RelatedViewsProps, {}>
             {
               relatedViewType !== 'histograms' &&
               <i
-                title='指定'
+                title={t('relatedViews.specify')}
                 styleName='command'
                 className="fa fa-server"
                 onClick={this.onSpecify.bind(this, relatedViewType)}

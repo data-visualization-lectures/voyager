@@ -5,6 +5,7 @@ import {ClipLoader} from 'react-spinners';
 import {InlineData} from 'vega-lite/build/src/data';
 import {SortField, SortOrder} from 'vega-lite/build/src/sort';
 import {ActionHandler} from '../../actions/redux-action';
+import {t} from '../../i18n';
 import {
   RESULT_LIMIT_INCREASE, RESULT_MODIFY_FIELD_PROP,
   ResultAction, ResultModifyFieldProp
@@ -76,7 +77,7 @@ export class PlotListBase extends React.PureComponent<PlotListProps, any> {
         </div>
         {plots && plots.length > limit && (
           <a styleName="load-more" onClick={this.onLoadMore}>
-            Load more...
+            {t('plotList.loadMore')}
           </a>
         )}
       </div>

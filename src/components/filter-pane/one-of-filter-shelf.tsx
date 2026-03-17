@@ -3,6 +3,7 @@ import * as CSSModules from 'react-css-modules';
 import {DateTime} from 'vega-lite/build/src/datetime';
 import {FieldOneOfPredicate} from 'vega-lite/build/src/predicate';
 import {FILTER_MODIFY_ONE_OF, FilterAction} from '../../actions';
+import {t} from '../../i18n';
 import {insertItemToArray, removeItemFromArray} from '../../reducers/util';
 import * as styles from './one-of-filter-shelf.scss';
 
@@ -41,7 +42,7 @@ export class OneOfFilterShelfBase extends React.PureComponent<OneOfFilterShelfPr
             /> {'' + option}
           </label>
           <span onClick={this.onSelectOne.bind(this, option)} styleName='keep-only'>
-            Keep Only
+            {t('filter.keepOnly')}
           </span>
         </div>
       );
@@ -51,10 +52,10 @@ export class OneOfFilterShelfBase extends React.PureComponent<OneOfFilterShelfPr
         <div styleName='below-header'>
           <span>
             <a styleName='select-all' onClick={this.onSelectAll.bind(this)}>
-              Select All
+              {t('filter.selectAll')}
             </a> /
             <a styleName='clear-all' onClick={this.onClearAll.bind(this)}>
-              Clear All
+              {t('filter.clearAll')}
             </a>
           </span>
           {this.state.hideSearchBar ?

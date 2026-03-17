@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 import {REDO, UNDO} from '../../actions/undo-redo';
+import {t} from '../../i18n';
 import {State} from '../../models';
 
 export interface UndoRedoProps {
@@ -16,10 +17,10 @@ class UndoRedoBase extends React.PureComponent<UndoRedoProps, any> {
     return (
       <div>
         <button onClick={onUndo} disabled={!canUndo}>
-          <i className='fa fa-undo' /> 元に戻す
+          <i className='fa fa-undo' /> {t('undoRedo.undo')}
         </button>
         <button onClick={onRedo} disabled={!canRedo}>
-          <i className='fa fa-repeat' /> やり直す
+          <i className='fa fa-repeat' /> {t('undoRedo.redo')}
         </button>
       </div>
     );

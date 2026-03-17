@@ -7,6 +7,7 @@ import {isDiscrete, isFieldDef} from 'vega-lite/build/src/fielddef';
 import {SortField, SortOrder} from 'vega-lite/build/src/sort';
 import {TopLevelFacetedUnitSpec} from 'vega-lite/build/src/spec';
 import {BOOKMARK_MODIFY_NOTE, BookmarkAction} from '../../actions/bookmark';
+import {t} from '../../i18n';
 import {LogAction} from '../../actions/log';
 import {ActionHandler} from '../../actions/redux-action';
 import {ResultAction} from '../../actions/result';
@@ -118,7 +119,7 @@ export class PlotBase extends React.PureComponent<PlotProps, PlotState> {
                 offset='0px 30px'
               >
                 {this.renderCopySpecButton()}
-                {this.state.copiedPopupIsOpened && <span styleName='copied'>copied</span>}
+                {this.state.copiedPopupIsOpened && <span styleName='copied'>{t('plot.copied')}</span>}
               </TetherComponent>
             </span>
           </div>
@@ -251,7 +252,7 @@ export class PlotBase extends React.PureComponent<PlotProps, PlotState> {
     const channelDef = spec.encoding[channel];
     if (isFieldDef(channelDef) && isDiscrete(channelDef)) {
       return <i
-        title='並べ替え'
+        title={t('plot.sort')}
         className="fa fa-sort-alpha-asc"
         styleName={channel === 'x' ? 'sort-x-command' : 'command'}
         onClick={this.onSort.bind(this, channel)}
@@ -262,7 +263,7 @@ export class PlotBase extends React.PureComponent<PlotProps, PlotState> {
 
   private renderSpecifyButton() {
     return <i
-      title='指定'
+      title={t('plot.specify')}
       className="fa fa-server"
       styleName="specify-command"
       onClick={this.onSpecify}
@@ -315,7 +316,7 @@ export class PlotBase extends React.PureComponent<PlotProps, PlotState> {
       <CopyToClipboard
         onCopy={this.copied.bind(this)}
         text={JSON.stringify(this.specWithFilter, null, 2)}>
-        <i title='コピー' className='fa fa-clipboard' />
+        <i title={t('plot.copy')} className='fa fa-clipboard' />
       </CopyToClipboard>
     );
   }

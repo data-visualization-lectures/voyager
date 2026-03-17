@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 import {InlineData} from 'vega-lite/build/src/data';
 import {BOOKMARK_CLEAR_ALL, BookmarkAction} from '../../actions/bookmark';
 import {ActionHandler, createDispatchHandler} from '../../actions/redux-action';
+import {t} from '../../i18n';
 import {State} from '../../models';
 import {Bookmark} from '../../models/bookmark';
 import {ResultPlot} from '../../models/result';
@@ -34,7 +35,7 @@ export class BookmarkBase extends React.PureComponent<BookmarkProps, any> {
     return (
       <div>
         <button onClick={this.openModal}>
-          <i className="fa fa-bookmark" /> ブックマーク ({this.props.bookmark.count})
+          <i className="fa fa-bookmark" /> {t('bookmark.bookmarkWithCount', {count: this.props.bookmark.count})}
         </button>
 
         <Modal
@@ -45,17 +46,17 @@ export class BookmarkBase extends React.PureComponent<BookmarkProps, any> {
           className="voyager"
         >
           <div className="modal-header">
-            <a className="right" onClick={this.closeModal}>Close</a>
-            <h3>ブックマーク ({this.props.bookmark.count})</h3>
+            <a className="right" onClick={this.closeModal}>{t('bookmark.close')}</a>
+            <h3>{t('bookmark.bookmarkWithCount', {count: this.props.bookmark.count})}</h3>
             <a styleName="bookmark-list-util" onClick={this.onClearAll}>
               <i className="fa fa-trash-o" />
               {' '}
-              すべてクリア
+              {t('bookmark.clearAll')}
             </a>
             <a styleName="bookmark-list-util" onClick={this.onExport}>
               <i className="fa fa-clipboard" />
               {' '}
-              エクスポート
+              {t('bookmark.export')}
             </a>
           </div>
 
@@ -126,7 +127,7 @@ export class BookmarkBase extends React.PureComponent<BookmarkProps, any> {
         {
           (bookmarkPlotListItems.length > 0) ?
             bookmarkPlotListItems :
-            <div styleName="vis-list-empty">ブックマークがありません</div>
+            <div styleName="vis-list-empty">{t('bookmark.noBookmarks')}</div>
         }
       </div>
     );

@@ -10,6 +10,7 @@ import {ActionHandler} from '../../actions/index';
 import {createDispatchHandler} from '../../actions/redux-action';
 import {ResultAsyncAction} from '../../actions/result';
 import {ShelfAction, SPEC_CLEAR} from '../../actions/shelf';
+import {t} from '../../i18n';
 import {ShelfUnitSpec, State} from '../../models';
 import {VoyagerConfig} from '../../models/config';
 import {ShelfFieldDef} from '../../models/shelf';
@@ -54,7 +55,7 @@ class EncodingPanelBase extends React.PureComponent<EncodingPanelProps, {}> {
     const nonPositionShelves = ['size', 'color', 'shape', 'detail', 'text'].map(this.encodingShelf, this);
     const wildcardShelvesGroup = wildcards !== 'disabled' && (
       <div styleName="shelf-group">
-        <h3>ワイルドカードシェルフ</h3>
+        <h3>{t('encoding.wildcardShelves')}</h3>
         {[...anyEncodings.map((_, i) => i),
         -1 // map the empty placeholder to -1
         ].map(this.wildcardShelf, this)}
@@ -66,12 +67,12 @@ class EncodingPanelBase extends React.PureComponent<EncodingPanelProps, {}> {
         <a className="right" onClick={this.onClear}>
           <i className="fa fa-eraser" />
           {' '}
-          クリア
+          {t('encoding.clear')}
         </a>
 
         <h2>
-          エンコーディング
-          {specPreview && ' プレビュー'}
+          {t('encoding.encoding')}
+          {specPreview && t('encoding.preview')}
         </h2>
 
         <div styleName="shelf-group">
@@ -82,12 +83,12 @@ class EncodingPanelBase extends React.PureComponent<EncodingPanelProps, {}> {
           <div className="right">
             {this.markPicker()}
           </div>
-          <h3>マーク</h3>
+          <h3>{t('encoding.mark')}</h3>
           {nonPositionShelves}
         </div>
 
         <div styleName="shelf-group">
-          <h3>ファセット</h3>
+          <h3>{t('encoding.facet')}</h3>
           {facetShelves}
         </div>
 
@@ -95,7 +96,7 @@ class EncodingPanelBase extends React.PureComponent<EncodingPanelProps, {}> {
         {wildcardShelvesGroup}
 
         <div styleName="shelf-group">
-          <h3>フィルター</h3>
+          <h3>{t('encoding.filter')}</h3>
           {this.filterPane()}
         </div>
       </div>

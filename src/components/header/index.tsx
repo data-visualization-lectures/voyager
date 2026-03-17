@@ -5,6 +5,7 @@ import { Dispatch } from 'redux';
 import { InlineData } from 'vega-lite/build/src/data';
 
 import * as logo from '../../../images/logo.png';
+import { t } from '../../i18n';
 import { fromSerializable, State, toSerializable } from '../../models/index';
 import { SET_APPLICATION_STATE } from '../../actions/state';
 import { selectData } from '../../selectors/dataset';
@@ -64,10 +65,10 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
             onChange={this.onFileChange}
           />
           <button id="voyager-cmd-save" className="command" onClick={this.handleSaveProject}>
-            <i className="fa fa-floppy-o" /> プロジェクト・ファイルの保存
+            <i className="fa fa-floppy-o" /> {t('header.saveProject')}
           </button>
           <button id="voyager-cmd-load" className="command" onClick={this.handleLoadProject}>
-            <i className="fa fa-folder-open" /> プロジェクト・ファイルの読込
+            <i className="fa fa-folder-open" /> {t('header.loadProject')}
           </button>
         </div>
 
@@ -94,7 +95,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
-      if (confirm("ログインしていません。ローカルファイルとして保存しますか？\n（クラウド保存するには https://auth.dataviz.jp でログインしてください）")) {
+      if (confirm(t('header.notLoggedInSaveLocal'))) {
         this.saveLocalProject(state);
       }
       return;
@@ -103,7 +104,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
     const now = new Date();
     const pad = (n: number) => ('0' + n).slice(-2);
     const defaultName = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    const name = prompt("保存するプロジェクト名を入力してください", defaultName);
+    const name = prompt(t('header.enterProjectName'), defaultName);
     if (!name) return; // Cancelled
 
     try {
@@ -120,7 +121,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
         let specifiedViewHeader: HTMLElement | null = null;
 
         for (let i = 0; i < headers.length; i++) {
-          if (headers[i].textContent === '指定されたビュー') {
+          if (headers[i].textContent === t('viewPane.specifiedView')) {
             specifiedViewHeader = headers[i];
             break;
           }
@@ -158,11 +159,11 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
         await CloudApi.saveProject('voyager2', name, serializableState, thumbnailBlob);
       }
 
-      this.showNotification("クラウドにプロジェクトを保存しました！");
+      this.showNotification(t('header.savedToCloud'));
 
     } catch (e) {
       console.error("Failed to save project to cloud:", e);
-      this.showNotification("クラウド保存に失敗しました：" + e.message, 'error');
+      this.showNotification(t('header.cloudSaveFailed', {error: e.message}), 'error');
     }
   }
 
@@ -179,10 +180,10 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
           state: newState
         }
       });
-      this.showNotification("プロジェクトを読み込みました。");
+      this.showNotification(t('header.projectLoaded'));
     } catch (e) {
       console.error("Failed to parse project:", e);
-      this.showNotification("プロジェクトデータの読み込みに失敗しました。", 'error');
+      this.showNotification(t('header.projectLoadFailed'), 'error');
     }
   }
 
@@ -202,7 +203,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
       URL.revokeObjectURL(url);
     } catch (e) {
       console.error("Failed to save local project:", e);
-      alert("プロジェクトの保存に失敗しました。");
+      alert(t('header.localSaveFailed'));
     }
   }
 
@@ -216,7 +217,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
-      if (confirm("ログインしていません。ローカルファイルから読み込みますか？")) {
+      if (confirm(t('header.notLoggedInLoadLocal'))) {
         this.loadLocalProject();
       }
       return;
@@ -252,7 +253,7 @@ export class HeaderBase extends React.PureComponent<HeaderProps, HeaderState> {
         });
       } catch (error) {
         console.error("Failed to load project:", error);
-        alert("プロジェクトファイルの読み込みに失敗しました。ファイル形式を確認してください。");
+        alert(t('header.fileLoadFailed'));
       }
     };
     reader.readAsText(file);

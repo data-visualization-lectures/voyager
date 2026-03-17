@@ -16,6 +16,7 @@ import {
   DatasetAsyncAction,
   datasetLoad,
 } from '../../actions';
+import { t } from '../../i18n';
 import { DEFAULT_DATASETS } from '../../constants';
 import { Dataset, State } from '../../models';
 import { selectDataset } from '../../selectors';
@@ -69,14 +70,14 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
           styleName="modal"
         >
           <div className='modal-header'>
-            <a styleName='modal-close' onClick={this.closeModal}>閉じる</a>
-            <h3>データセットを追加</h3>
+            <a styleName='modal-close' onClick={this.closeModal}>{t('dataSelector.close')}</a>
+            <h3>{t('dataSelector.addDataset')}</h3>
           </div>
           <Tabs className={styles['react-tabs']}>
             <TabList className={styles['tab-list']}>
               {/* <Tab className={styles.tab}>データセットを変更</Tab> */}
-              <Tab className={styles.tab}>データを貼り付けまたはアップロード</Tab>
-              <Tab className={styles.tab}>URLから</Tab>
+              <Tab className={styles.tab}>{t('dataSelector.pasteOrUpload')}</Tab>
+              <Tab className={styles.tab}>{t('dataSelector.fromUrl')}</Tab>
             </TabList>
 
             {/*
@@ -125,10 +126,10 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
     return (
       <div styleName='upload-panel'>
         <div className='form-group'>
-          <label htmlFor='data-file'>ファイル</label>
+          <label htmlFor='data-file'>{t('dataSelector.file')}</label>
           <input id='data-file' type='file' onChange={this.onFileChange} />
         </div>
-        <p>データファイルをアップロードするか、CSV形式のデータを入力欄に貼り付けてください。</p>
+        <p>{t('dataSelector.uploadInstructions')}</p>
         <div styleName='dropzone-target' />
       </div>
     );
@@ -137,13 +138,9 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
   private renderUrlPanel() {
     return (
       <div styleName='url-panel'>
-        <p>
-          データセットの名前と、<b> JSON </b>、<b> CSV </b>（ヘッダー付き）、または
-          <b> TSV </b>ファイルへのURLを追加してください。フォーマットが正しいことを確認し、追加する前にデータをクリーンアップしてください。
-          追加されたデータセットはあなただけに表示されます。
-        </p>
+        <p dangerouslySetInnerHTML={{__html: t('dataSelector.urlInstructions')}} />
         <div className='form-group'>
-          <label htmlFor='filetype-selector'>ファイルタイプ</label>
+          <label htmlFor='filetype-selector'>{t('dataSelector.fileType')}</label>
           <select value={this.state.fileType} onChange={this.handleFileTypeChange} id='filetype-selector'>
             <option value="json">JSON</option>
             <option value="csv">CSV</option>
@@ -151,7 +148,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
           </select>
         </div>
         <div className='form-group'>
-          <label htmlFor='data-name'>名前</label>
+          <label htmlFor='data-name'>{t('dataSelector.name')}</label>
           <input
             name='dataName'
             value={this.state.dataName}
@@ -161,7 +158,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
           />
         </div>
         <div className='form-group'>
-          <label htmlFor='data-url'>URL</label>
+          <label htmlFor='data-url'>{t('dataSelector.url')}</label>
           <input
             name='dataUrl'
             value={this.state.dataUrl}
@@ -170,7 +167,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
             type='name'
           />
         </div>
-        <button onClick={this.onDataUrlSubmit}>データセットを追加</button>
+        <button onClick={this.onDataUrlSubmit}>{t('dataSelector.addDatasetButton')}</button>
       </div>
     );
   }
@@ -183,7 +180,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
     return (
       <div styleName='paste-panel'>
         <div className='form-group'>
-          <label htmlFor='data-name'>名前</label>
+          <label htmlFor='data-name'>{t('dataSelector.name')}</label>
           <input
             name='dataName'
             value={this.state.dataName}
@@ -199,7 +196,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
             onChange={this.handleTextChange}
           />
         </div>
-        <button onClick={this.onDataTextSubmit}>データを追加</button>
+        <button onClick={this.onDataTextSubmit}>{t('dataSelector.addData')}</button>
       </div>
     );
   }

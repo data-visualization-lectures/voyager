@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as CSSModules from 'react-css-modules';
 import {ActionHandler} from '../../actions/redux-action';
 import {RELATED_VIEWS_HIDE_TOGGLE, RelatedViewsAction} from '../../actions/related-views';
+import {t} from '../../i18n';
 import * as styles from './related-views-button.scss';
 
 
@@ -21,7 +22,7 @@ export class RelatedViewsButtonBase extends React.PureComponent<RelatedViewsButt
     return (
       <div styleName="right">
         <a onClick={this.onHideClick}>
-          {collapseRelatedViews ? '展開' : '折りたたむ'}
+          {collapseRelatedViews ? t('relatedViews.expand') : t('relatedViews.collapse')}
           &nbsp;&nbsp;
           {collapseRelatedViews ? <i className='fa fa-toggle-up' /> : <i className='fa fa-toggle-down' />}
         </a>

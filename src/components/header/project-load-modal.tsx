@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as CSSModules from 'react-css-modules';
 import Modal from 'react-modal';
 import {CloudApi, CloudProject} from '../../api/cloud-api'; // Ensure this path is correct
+import {t} from '../../i18n';
 import * as styles from './project-load-modal.scss';
 
 export interface ProjectLoadModalProps {
@@ -74,7 +75,7 @@ class ProjectLoadModalBase extends React.PureComponent<ProjectLoadModalProps, Pr
 
   private async handleDelete(e: React.SyntheticEvent<any>, project: CloudProject) {
     e.stopPropagation();
-    if (!confirm(`プロジェクト「${project.name}」を削除してもよろしいですか？`)) {
+    if (!confirm(t('modal.confirmDelete', {name: project.name}))) {
       return;
     }
 
@@ -85,7 +86,7 @@ class ProjectLoadModalBase extends React.PureComponent<ProjectLoadModalProps, Pr
         projects: this.state.projects.filter(p => p.id !== project.id)
       });
     } catch (e) {
-      alert("削除に失敗しました: " + e.message);
+      alert(t('modal.deleteFailed', {error: e.message}));
     }
   }
 
@@ -96,7 +97,7 @@ class ProjectLoadModalBase extends React.PureComponent<ProjectLoadModalProps, Pr
       this.props.onLoadProject(content);
       this.props.onRequestClose();
     } catch (e) {
-      alert("読み込みに失敗しました: " + e.message);
+      alert(t('modal.loadFailed', {error: e.message}));
       this.setState({loading: false});
     }
   }
@@ -141,12 +142,12 @@ class ProjectLoadModalBase extends React.PureComponent<ProjectLoadModalProps, Pr
       >
         <div styleName="modal-content">
           <div styleName="modal-header">
-            <h3>クラウドプロジェクトを開く</h3>
+            <h3>{t('modal.openCloudProject')}</h3>
             <span styleName="close-button" onClick={onRequestClose}>&times;</span>
           </div>
 
           {loading && projects.length === 0 && (
-            <div styleName="loading-state">読み込み中...</div>
+            <div styleName="loading-state">{t('modal.loading')}</div>
           )}
 
           {error && (
@@ -154,7 +155,7 @@ class ProjectLoadModalBase extends React.PureComponent<ProjectLoadModalProps, Pr
           )}
 
           {!loading && !error && projects.length === 0 && (
-            <div styleName="empty-state">保存されたプロジェクトはありません。</div>
+            <div styleName="empty-state">{t('modal.noSavedProjects')}</div>
           )}
 
           <div styleName="project-grid">
@@ -181,13 +182,13 @@ class ProjectLoadModalBase extends React.PureComponent<ProjectLoadModalProps, Pr
                       styleName="btn-load"
                       onClick={(e) => {e.stopPropagation(); this.handleLoad(p);}}
                     >
-                      開く
+                      {t('modal.open')}
                     </button>
                     <button
                       styleName="btn-delete"
                       onClick={(e) => this.handleDelete(e, p)}
                     >
-                      削除
+                      {t('modal.delete')}
                     </button>
                   </div>
                 </div>

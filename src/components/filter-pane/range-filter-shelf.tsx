@@ -10,6 +10,7 @@ import {TimeUnit} from 'vega-lite/build/src/timeunit';
 import {FILTER_MODIFY_EXTENT, FILTER_MODIFY_MAX_BOUND, FILTER_MODIFY_MIN_BOUND,
   FilterAction} from '../../actions';
 import {ActionHandler} from '../../actions/redux-action';
+import {t} from '../../i18n';
 import {convertToDateTimeObject, convertToTimestamp} from '../../models/shelf/filter';
 import * as styles from './range-filter-shelf.scss';
 
@@ -95,7 +96,7 @@ export class RangeFilterShelfBase extends React.PureComponent<RangeFilterShelfPr
       range = input;
     }
     if (range[0] > range[1]) {
-      window.alert('Invalid bound');
+      window.alert(t('filter.invalidBound'));
       return;
     }
     const {handleAction, index} = this.props;
@@ -121,7 +122,7 @@ export class RangeFilterShelfBase extends React.PureComponent<RangeFilterShelfPr
     }
     const minBound = this.props.filter.range[0];
     if (maxBound < minBound) {
-      window.alert('Maximum bound cannot be smaller than minimum bound');
+      window.alert(t('filter.maxCannotBeLessThanMin'));
       return;
     }
     handleAction({
@@ -147,7 +148,7 @@ export class RangeFilterShelfBase extends React.PureComponent<RangeFilterShelfPr
     const range = this.props.filter.range;
     const maxBound = range[1];
     if (minBound > maxBound) {
-      window.alert('Minimum bound cannot be greater than maximum bound');
+      window.alert(t('filter.minCannotBeGreaterThanMax'));
       return;
     }
     handleAction({

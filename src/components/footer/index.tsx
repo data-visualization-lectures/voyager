@@ -2,6 +2,7 @@ import * as Papa from 'papaparse';
 import * as React from 'react';
 import * as CSSModules from 'react-css-modules';
 import * as fileDownload from 'react-file-download';
+import {t} from '../../i18n';
 import {constructLogString} from '../../models/export-logs';
 import {actionLogs} from '../../store/index';
 import * as styles from './footer.scss';
@@ -11,7 +12,7 @@ export class FooterBase extends React.PureComponent<{}, {}> {
   public render() {
     return (
       <div styleName='footer'>
-        <a onClick={this.exportLogs}>ログをダウンロード</a>
+        <a onClick={this.exportLogs}>{t('footer.downloadLogs')}</a>
       </div>
     );
   }

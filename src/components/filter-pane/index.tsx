@@ -17,6 +17,7 @@ import {
   FILTER_REMOVE, FilterAction
 } from '../../actions';
 import {ActionHandler} from '../../actions/redux-action';
+import {t} from '../../i18n';
 import {DraggableType} from '../../constants';
 import {filterHasField, getDefaultList, getDefaultTimeRange} from '../../models/shelf/filter';
 import {FunctionPicker} from '../encoding-pane/function-picker';
@@ -162,10 +163,10 @@ class FilterPaneBase extends React.PureComponent<FilterPaneProps, {}> {
     let styleName, text;
     if (item && !canDrop) {
       styleName = 'placeholder-disabled';
-      text = 'ここにフィールドをドロップできません';
+      text = t('filter.cannotDropHere');
     } else {
       styleName = isOver ? 'placeholder-over' : item ? 'placeholder-active' : 'placeholder';
-      text = 'フィールドをここにドロップ';
+      text = t('filter.dropFieldHere');
     }
     return (
       <span styleName={styleName}>
@@ -210,11 +211,11 @@ const filterShelfTarget: DropTargetSpec<FilterPaneProps> = {
     }
     const {filter} = monitor.getItem() as DraggedFieldIdentifier;
     if (isWildcard(filter.field)) {
-      window.alert('Cannot add wildcard filter');
+      window.alert(t('filter.cannotAddWildcardFilter'));
       throw new Error('Cannot add wildcard filter');
     }
     if (filterHasField(props.filters, filter.field)) {
-      window.alert('Cannot add more than one filter of the same field');
+      window.alert(t('filter.cannotAddDuplicateFilter'));
       return;
     }
     props.handleAction({
