@@ -44,6 +44,8 @@ measureFileSizesBeforeBuild(paths.appBuild).then(previousFileSizes => {
 
   // Copy data folder
   copyDataFolder();
+  // Copy favicon / images for production
+  copyImages();
   // Copy scss files from /src to /build
   copyScss();
 });
@@ -96,6 +98,12 @@ function build(previousFileSizes) {
     console.log();
     printFileSizesAfterBuild(stats, previousFileSizes, paths.appBuild);
     console.log();
+  });
+}
+
+function copyImages() {
+  fs.copySync(path.resolve(__dirname, '../images'), path.resolve(paths.appBuild, 'images'), {
+    dereference: true,
   });
 }
 
