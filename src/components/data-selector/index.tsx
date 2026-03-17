@@ -218,10 +218,19 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
     reader.onload = (lEvent: any) => {
       const name = file.name.replace(/\.\w+$/, '');
       const format = file.name.split('.').pop();
+      const buffer = lEvent.target.result as ArrayBuffer;
+
+      // UTF-8でデコードを試行し、失敗したらShift_JISにフォールバック
+      let text: string;
+      try {
+        text = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+      } catch {
+        text = new TextDecoder('shift_jis').decode(buffer);
+      }
 
       let values;
       try {
-        values = vega.read(lEvent.target.result, { type: format });
+        values = vega.read(text, { type: format });
       } catch (err) {
         window.alert(err.message);
       }
@@ -229,7 +238,7 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
       handleAction(datasetLoad(name, { values, format }));
     };
 
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   }
 
   private onDataTextSubmit() {
