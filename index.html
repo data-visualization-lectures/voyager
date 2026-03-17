@@ -18,6 +18,11 @@
   <link href="./dist/style.css" rel="stylesheet">
 
   <style>
+    :root {
+      --common-header-height: 48px;
+      --tool-header-height: 40px;
+    }
+
     html {
       height: 100%;
     }
@@ -30,14 +35,22 @@
 
     #root {
       height: 100%;
-      padding-top: 48px;
-      /* Fixed header adjustment */
+      padding-top: calc(var(--common-header-height) + var(--tool-header-height));
       box-sizing: border-box;
+    }
+
+    dataviz-tool-header {
+      top: var(--common-header-height) !important;
+    }
+
+    div[class*="header__header"] {
+      display: none !important;
     }
   </style>
 </head>
 
 <body>
+  <dataviz-tool-header></dataviz-tool-header>
   <div id="root"></div>
 
   <!-- Dependencies -->

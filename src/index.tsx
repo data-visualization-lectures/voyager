@@ -50,6 +50,14 @@ if (module.hot) {
 customElements.whenDefined('dataviz-tool-header').then(() => {
   const header = document.querySelector('dataviz-tool-header');
   if (header) {
+    // Measure and update tool header height CSS variable
+    requestAnimationFrame(() => {
+      const rect = header.getBoundingClientRect();
+      if (rect.height > 0) {
+        document.documentElement.style.setProperty('--tool-header-height', rect.height + 'px');
+      }
+    });
+
     (header as any).setConfig({
       logo: {
         type: 'image',

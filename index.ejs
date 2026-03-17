@@ -16,6 +16,11 @@
   </script>
 
   <style>
+    :root {
+      --common-header-height: 48px;
+      --tool-header-height: 40px;
+    }
+
     html {
       height: 100%;
     }
@@ -28,19 +33,16 @@
 
     #root {
       height: 100%;
-      padding-top: 48px;
-      /* Fixed headers adjustment: 48px (common) + tool header overlay */
+      padding-top: calc(var(--common-header-height) + var(--tool-header-height));
       box-sizing: border-box;
     }
 
     dataviz-tool-header {
-      top: 48px !important;
-      /* Position below the common header */
+      top: var(--common-header-height) !important;
     }
 
     div[class*="header__header"] {
       display: none !important;
-      /* Hide original voyager header - functionality moved to tool header */
     }
   </style>
 </head>
