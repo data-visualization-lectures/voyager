@@ -24,6 +24,21 @@ const data: Data = undefined;
 let currentProjectId: string | null = null;
 let currentProjectName: string | null = null;
 
+// Get data filename without extension
+function getDataFilename(): string | null {
+  try {
+    const state = store.getState();
+    if (state && (state as any).dataset && (state as any).dataset.name) {
+      const filename = (state as any).dataset.name;
+      // Remove extension if present
+      return filename.replace(/\.[^/.]+$/, '');
+    }
+  } catch (err) {
+    console.error('Failed to get data filename:', err);
+  }
+  return null;
+}
+
 // Get thumbnail from canvas
 function getThumbnailDataUri(): string | null {
   try {
@@ -103,8 +118,13 @@ customElements.whenDefined('dataviz-tool-header').then(() => {
           action: () => {
             const state = store.getState();
             const serializableState = toSerializable(state);
+            // Use data filename as default, fallback to previous project name or timestamp
+            const defaultName = getDataFilename() || currentProjectName;
+            const now = new Date();
+            const pad = (n: number) => ('0' + n).slice(-2);
+            const fallbackName = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
             (header as any).showSaveModal({
-              name: currentProjectName,
+              name: defaultName || fallbackName,
               data: serializableState,
               thumbnailDataUri: getThumbnailDataUri(),
               existingProjectId: currentProjectId,
