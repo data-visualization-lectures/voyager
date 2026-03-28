@@ -81,8 +81,11 @@ export class App extends React.PureComponent<Props, {}> {
     console.log(`Loading project ${projectId}...`);
 
     try {
-      const {CloudApi} = await import('../api/cloud-api');
-      const projectData = await CloudApi.getProjectContent(projectId);
+      const header = document.querySelector('dataviz-tool-header');
+      if (!header) {
+        throw new Error('dataviz-tool-header not found');
+      }
+      const projectData = await (header as any).loadProject(projectId);
       const newState = fromSerializable(projectData);
 
       this.props.dispatch({

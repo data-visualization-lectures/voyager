@@ -10,13 +10,39 @@ import {VOYAGER_CONFIG} from './constants';
 import {VoyagerConfig} from './models/config';
 import {configureStore} from './store';
 
-import {datasetLoad} from './actions';
+import {datasetLoad, SET_APPLICATION_STATE} from './actions';
 import {DEFAULT_DATASETS} from './constants';
+import {toSerializable, fromSerializable} from './models/index';
+import {t} from './i18n';
 
 const store = configureStore();
 const config: VoyagerConfig = VOYAGER_CONFIG;
 
 const data: Data = undefined;
+
+// Project management state
+let currentProjectId: string | null = null;
+let currentProjectName: string | null = null;
+
+// Get thumbnail from canvas
+function getThumbnailDataUri(): string | null {
+  try {
+    const headers = document.getElementsByTagName('h2');
+    for (let i = 0; i < headers.length; i++) {
+      if (headers[i].textContent === t('viewPane.specifiedView')) {
+        const parent = headers[i].parentElement;
+        if (parent) {
+          const canvas = parent.querySelector('canvas') as HTMLCanvasElement;
+          if (canvas) return canvas.toDataURL('image/png');
+        }
+        break;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to capture thumbnail:', err);
+  }
+  return null;
+}
 
 ReactDOM.render(
   <Provider store={store}>
@@ -68,22 +94,21 @@ customElements.whenDefined('dataviz-tool-header').then(() => {
         {
           label: 'プロジェクトの読込',
           action: () => {
-            // Trigger the load button click in the original header
-            const loadButton = document.getElementById('voyager-cmd-load') as HTMLButtonElement;
-            if (loadButton) {
-              loadButton.click();
-            }
+            (header as any).showLoadModal();
           },
           align: 'right'
         },
         {
           label: 'プロジェクトの保存',
           action: () => {
-            // Trigger the save button click in the original header
-            const saveButton = document.getElementById('voyager-cmd-save') as HTMLButtonElement;
-            if (saveButton) {
-              saveButton.click();
-            }
+            const state = store.getState();
+            const serializableState = toSerializable(state);
+            (header as any).showSaveModal({
+              name: currentProjectName,
+              data: serializableState,
+              thumbnailDataUri: getThumbnailDataUri(),
+              existingProjectId: currentProjectId,
+            });
           },
           align: 'right'
         },
@@ -111,6 +136,26 @@ customElements.whenDefined('dataviz-tool-header').then(() => {
           align: 'left'
         }
       ]
+    });
+
+    // Configure project management
+    (header as any).setProjectConfig({
+      appName: 'voyager2',
+      onProjectLoad: (projectData: any) => {
+        try {
+          const newState = fromSerializable(projectData);
+          store.dispatch({
+            type: SET_APPLICATION_STATE,
+            payload: { state: newState }
+          });
+        } catch (e) {
+          console.error('Failed to apply project data:', e);
+        }
+      },
+      onProjectSave: (meta: { id: string; name: string }) => {
+        currentProjectId = meta.id;
+        if (meta.name) currentProjectName = meta.name;
+      }
     });
   }
 });
