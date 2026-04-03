@@ -11,7 +11,6 @@ import {VoyagerConfig} from './models/config';
 import {configureStore} from './store';
 
 import {datasetLoad, SET_APPLICATION_STATE} from './actions';
-import {DEFAULT_DATASETS} from './constants';
 import {toSerializable, fromSerializable} from './models/index';
 import {t} from './i18n';
 
@@ -143,18 +142,6 @@ customElements.whenDefined('dataviz-tool-header').then(() => {
           },
           align: 'left'
         },
-        {
-          label: 'サンプルデータの読込',
-          type: 'dropdown',
-          width: 150,
-          items: DEFAULT_DATASETS.map(d => ({
-            label: d.name,
-            action: () => {
-              store.dispatch(datasetLoad(d.name, d as any));
-            }
-          })),
-          align: 'left'
-        }
       ]
     });
 
