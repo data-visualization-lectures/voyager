@@ -47,7 +47,7 @@ export class App extends React.PureComponent<Props, {}> {
     const dataUrl = params.get('data_url');
     if (dataUrl) {
       this.props.dispatch(datasetLoad(
-        dataUrl.split('/').pop()?.replace(/\.[^.]+$/, '') || 'data',
+        (dataUrl.split('/').pop() || '').replace(/\.[^.]+$/, '') || 'data',
         { url: dataUrl } as any
       ));
       window.history.replaceState({}, document.title, window.location.pathname);
