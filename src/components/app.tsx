@@ -42,6 +42,18 @@ export class App extends React.PureComponent<Props, {}> {
 
   public async componentDidMount() {
     const params = new URLSearchParams(window.location.search);
+
+    // ?data_url= support
+    const dataUrl = params.get('data_url');
+    if (dataUrl) {
+      this.props.dispatch(datasetLoad(
+        dataUrl.split('/').pop()?.replace(/\.[^.]+$/, '') || 'data',
+        { url: dataUrl } as any
+      ));
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
     const projectId = params.get('project_id');
 
     if (projectId) {
