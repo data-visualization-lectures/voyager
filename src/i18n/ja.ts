@@ -4,7 +4,7 @@ export const ja: Translations = {
   // header
   'header.saveProject': 'プロジェクト・ファイルの保存',
   'header.loadProject': 'プロジェクト・ファイルの読込',
-  'header.notLoggedInSaveLocal': 'ログインしていません。ローカルファイルとして保存しますか？\n（クラウド保存するには https://auth.dataviz.jp でログインしてください）',
+  'header.notLoggedInSaveLocal': 'ログインしていません。ローカルファイルとして保存しますか？\n（クラウド保存するには https://app.dataviz.jp でログインしてください）',
   'header.enterProjectName': '保存するプロジェクト名を入力してください',
   'header.savedToCloud': 'クラウドにプロジェクトを保存しました！',
   'header.cloudSaveFailed': 'クラウド保存に失敗しました：{error}',

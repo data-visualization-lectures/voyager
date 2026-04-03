@@ -4,7 +4,7 @@ export const en: Translations = {
   // header
   'header.saveProject': 'Save Project',
   'header.loadProject': 'Load Project',
-  'header.notLoggedInSaveLocal': 'You are not logged in. Save as a local file?\n(To save to the cloud, please log in at https://auth.dataviz.jp)',
+  'header.notLoggedInSaveLocal': 'You are not logged in. Save as a local file?\n(To save to the cloud, please log in at https://app.dataviz.jp)',
   'header.enterProjectName': 'Enter a project name to save',
   'header.savedToCloud': 'Project saved to cloud!',
   'header.cloudSaveFailed': 'Cloud save failed: {error}',
