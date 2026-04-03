@@ -177,6 +177,14 @@ customElements.whenDefined('dataviz-tool-header').then(() => {
         if (meta.name) currentProjectName = meta.name;
       }
     });
+
+    // Sample data picker integration
+    (header as any).setSampleConfig({
+      toolId: 'voyager2',
+      onSampleSelect: (detail: { url: string; format: string; name: string }) => {
+        store.dispatch(datasetLoad(detail.name, { url: detail.url } as Data));
+      }
+    });
   }
 });
 
