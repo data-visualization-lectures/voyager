@@ -1,8 +1,8 @@
 {
-  "main.js": "static/js/main.8bbdc9f7.js",
-  "main.css": "static/css/main.c3ae96a9.css",
-  "main.js.map": "static/js/main.8bbdc9f7.js.map",
-  "main.css.map": "static/css/main.c3ae96a9.css.map",
+  "main.js": "static/js/main.ce6b70fb.js",
+  "main.css": "static/css/main.2ad5d717.css",
+  "main.js.map": "static/js/main.ce6b70fb.js.map",
+  "main.css.map": "static/css/main.2ad5d717.css.map",
   "build/actions/bookmark.d.ts": "build/actions/bookmark.d.ts",
   "build/actions/config.d.ts": "build/actions/config.d.ts",
   "build/actions/custom-wildcard-field.d.ts": "build/actions/custom-wildcard-field.d.ts",
