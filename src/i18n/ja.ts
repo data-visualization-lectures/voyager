@@ -13,6 +13,11 @@ export const ja: Translations = {
   'header.localSaveFailed': 'プロジェクトの保存に失敗しました。',
   'header.notLoggedInLoadLocal': 'ログインしていません。ローカルファイルから読み込みますか？',
   'header.fileLoadFailed': 'プロジェクトファイルの読み込みに失敗しました。ファイル形式を確認してください。',
+  'processing.projectList': 'プロジェクト一覧を読み込み中です',
+  'processing.projectLoad': 'プロジェクトを読み込み中です',
+  'processing.projectSave': 'プロジェクトを保存中です',
+  'processing.savePrep': '保存準備中です',
+  'processing.sample': 'サンプルデータを読み込み中です',
 
   // project-load-modal
   'modal.openCloudProject': 'クラウドプロジェクトを開く',

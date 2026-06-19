@@ -11,6 +11,11 @@ export interface Translations {
   'header.localSaveFailed': string;
   'header.notLoggedInLoadLocal': string;
   'header.fileLoadFailed': string;
+  'processing.projectList': string;
+  'processing.projectLoad': string;
+  'processing.projectSave': string;
+  'processing.savePrep': string;
+  'processing.sample': string;
 
   // project-load-modal
   'modal.openCloudProject': string;

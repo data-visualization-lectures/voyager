@@ -13,6 +13,11 @@ export const en: Translations = {
   'header.localSaveFailed': 'Failed to save project.',
   'header.notLoggedInLoadLocal': 'You are not logged in. Load from a local file?',
   'header.fileLoadFailed': 'Failed to load project file. Please check the file format.',
+  'processing.projectList': 'Loading project list...',
+  'processing.projectLoad': 'Loading project...',
+  'processing.projectSave': 'Saving project...',
+  'processing.savePrep': 'Preparing save...',
+  'processing.sample': 'Loading sample data...',
 
   // project-load-modal
   'modal.openCloudProject': 'Open Cloud Project',

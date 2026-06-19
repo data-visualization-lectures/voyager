@@ -8,6 +8,7 @@ import {datasetLoad, SET_APPLICATION_STATE, SET_CONFIG} from '../actions';
 import {SPEC_LOAD} from '../actions/shelf';
 import {VoyagerConfig} from '../models/config';
 import {fromSerializable, State} from '../models/index';
+import {t} from '../i18n';
 import {AppRoot} from './app-root';
 
 export interface Props extends React.Props<App> {
@@ -40,12 +41,50 @@ export class App extends React.PureComponent<Props, {}> {
   // Flag to prevent duplicate loading
   private isLoadingProject = false;
 
+  private showProcessingToast(message: string) {
+    const header = document.querySelector('dataviz-tool-header');
+    if (header && typeof (header as any).showMessage === 'function') {
+      (header as any).showMessage(message, 'info', 5000);
+    }
+  }
+
+  private installHeaderProcessingToasts(header: any) {
+    if (!header || header.__dvzProcessingToastsInstalled === '1') return;
+
+    if (typeof header.showLoadModal === 'function') {
+      const originalShowLoadModal = header.showLoadModal.bind(header);
+      header.showLoadModal = (...args: any[]) => {
+        this.showProcessingToast(t('processing.projectList'));
+        return originalShowLoadModal(...args);
+      };
+    }
+
+    if (typeof header.loadProject === 'function') {
+      const originalLoadProject = header.loadProject.bind(header);
+      header.loadProject = (...args: any[]) => {
+        this.showProcessingToast(t('processing.projectLoad'));
+        return originalLoadProject(...args);
+      };
+    }
+
+    if (typeof header.saveProject === 'function') {
+      const originalSaveProject = header.saveProject.bind(header);
+      header.saveProject = (...args: any[]) => {
+        this.showProcessingToast(t('processing.projectSave'));
+        return originalSaveProject(...args);
+      };
+    }
+
+    header.__dvzProcessingToastsInstalled = '1';
+  }
+
   public async componentDidMount() {
     const params = new URLSearchParams(window.location.search);
 
     // ?data_url= support
     const dataUrl = params.get('data_url');
     if (dataUrl) {
+      this.showProcessingToast(t('processing.sample'));
       this.props.dispatch(datasetLoad(
         (dataUrl.split('/').pop() || '').replace(/\.[^.]+$/, '') || 'data',
         { url: dataUrl } as any
@@ -97,6 +136,7 @@ export class App extends React.PureComponent<Props, {}> {
       if (!header) {
         throw new Error('dataviz-tool-header not found');
       }
+      this.installHeaderProcessingToasts(header);
       const projectData = await (header as any).loadProject(projectId);
       const newState = fromSerializable(projectData);
 
