@@ -6,9 +6,10 @@ import {Data} from 'vega-lite/build/src/data';
 import {FacetedCompositeUnitSpec, TopLevel} from 'vega-lite/build/src/spec';
 import {datasetLoad, SET_APPLICATION_STATE, SET_CONFIG} from '../actions';
 import {SPEC_LOAD} from '../actions/shelf';
+import {t} from '../i18n';
 import {VoyagerConfig} from '../models/config';
 import {fromSerializable, State} from '../models/index';
-import {t} from '../i18n';
+import {rememberProjectLoad} from '../project-state';
 import {AppRoot} from './app-root';
 
 export interface Props extends React.Props<App> {
@@ -138,7 +139,8 @@ export class App extends React.PureComponent<Props, {}> {
       }
       this.installHeaderProcessingToasts(header);
       const projectData = await (header as any).loadProject(projectId);
-      const newState = fromSerializable(projectData);
+      const projectPayload = rememberProjectLoad(projectData, {projectId});
+      const newState = fromSerializable(projectPayload);
 
       this.props.dispatch({
         type: SET_APPLICATION_STATE,

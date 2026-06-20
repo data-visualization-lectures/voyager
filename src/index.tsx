@@ -11,17 +11,21 @@ import {VoyagerConfig} from './models/config';
 import {configureStore} from './store';
 
 import {datasetLoad, SET_APPLICATION_STATE} from './actions';
-import {toSerializable, fromSerializable} from './models/index';
 import {t} from './i18n';
+import {fromSerializable, toSerializable} from './models/index';
+import {
+  attachThumbnailDataUri,
+  extractThumbnailDataUri,
+  getCurrentProjectMeta,
+  rememberProjectLoad,
+  rememberProjectSave,
+  rememberProjectThumbnail
+} from './project-state';
 
 const store = configureStore();
 const config: VoyagerConfig = VOYAGER_CONFIG;
 
 const data: Data = undefined;
-
-// Project management state
-let currentProjectId: string | null = null;
-let currentProjectName: string | null = null;
 
 // Get data filename without extension
 function getDataFilename(): string | null {
@@ -38,18 +42,126 @@ function getDataFilename(): string | null {
   return null;
 }
 
+function findSpecifiedViewRoot(): Element | null {
+  const headers = document.getElementsByTagName('h2');
+  const len = headers.length;
+  for (let i = 0; i < len; i++) {
+    const header = headers.item(i);
+    if (header && (header.textContent || '').trim() === t('viewPane.specifiedView')) {
+      return header.parentElement;
+    }
+  }
+  return null;
+}
+
+function getCanvasArea(canvas: HTMLCanvasElement): number {
+  const rect = canvas.getBoundingClientRect();
+  const width = canvas.width || rect.width;
+  const height = canvas.height || rect.height;
+  return width > 0 && height > 0 ? width * height : 0;
+}
+
+function findLargestCanvas(root: Element | Document): HTMLCanvasElement | null {
+  const canvases = root.querySelectorAll('.chart canvas') as NodeListOf<HTMLCanvasElement>;
+  let bestCanvas: HTMLCanvasElement | null = null;
+  let bestArea = 0;
+
+  for (let i = 0; i < canvases.length; i++) {
+    const area = getCanvasArea(canvases[i]);
+    if (area > bestArea) {
+      bestCanvas = canvases[i];
+      bestArea = area;
+    }
+  }
+
+  return bestCanvas;
+}
+
+function canvasToThumbnailDataUri(canvas: HTMLCanvasElement): string | null {
+  const width = canvas.width;
+  const height = canvas.height;
+  if (width <= 0 || height <= 0) {
+    return null;
+  }
+
+  const maxWidth = 640;
+  const maxHeight = 480;
+  const scale = Math.min(1, maxWidth / width, maxHeight / height);
+  const thumbnailCanvas = document.createElement('canvas');
+  thumbnailCanvas.width = Math.max(1, Math.round(width * scale));
+  thumbnailCanvas.height = Math.max(1, Math.round(height * scale));
+
+  const context = thumbnailCanvas.getContext('2d');
+  if (!context) {
+    return null;
+  }
+
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
+  context.drawImage(canvas, 0, 0, width, height, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
+
+  return thumbnailCanvas.toDataURL('image/png');
+}
+
+function findLargestSvg(root: Element | Document): SVGSVGElement | null {
+  const svgs = root.querySelectorAll('.chart svg') as NodeListOf<SVGSVGElement>;
+  let bestSvg: SVGSVGElement | null = null;
+  let bestArea = 0;
+
+  for (let i = 0; i < svgs.length; i++) {
+    const rect = svgs[i].getBoundingClientRect();
+    const area = rect.width > 0 && rect.height > 0 ? rect.width * rect.height : 0;
+    if (area > bestArea) {
+      bestSvg = svgs[i];
+      bestArea = area;
+    }
+  }
+
+  return bestSvg;
+}
+
+function svgToDataUri(svg: SVGSVGElement): string | null {
+  try {
+    const text = new XMLSerializer().serializeToString(svg);
+    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(text)));
+  } catch (err) {
+    console.error('Failed to serialize thumbnail SVG:', err);
+  }
+  return null;
+}
+
 // Get thumbnail from canvas
 function getThumbnailDataUri(): string | null {
   try {
-    const headers = document.getElementsByTagName('h2');
-    for (let i = 0; i < headers.length; i++) {
-      if (headers[i].textContent === t('viewPane.specifiedView')) {
-        const parent = headers[i].parentElement;
-        if (parent) {
-          const canvas = parent.querySelector('canvas') as HTMLCanvasElement;
-          if (canvas) return canvas.toDataURL('image/png');
+    const roots: Array<Element | Document> = [];
+    const specifiedViewRoot = findSpecifiedViewRoot();
+    if (specifiedViewRoot) {
+      roots.push(specifiedViewRoot);
+    }
+
+    const voyagerRoot = document.querySelector('.voyager');
+    if (voyagerRoot && voyagerRoot !== specifiedViewRoot) {
+      roots.push(voyagerRoot);
+    }
+    roots.push(document);
+
+    for (const root of roots) {
+      const canvas = findLargestCanvas(root);
+      if (canvas) {
+        const dataUri = canvasToThumbnailDataUri(canvas);
+        if (dataUri) {
+          return dataUri;
         }
-        break;
+      }
+    }
+
+    for (const root of roots) {
+      const svg = findLargestSvg(root);
+      if (svg) {
+        const dataUri = svgToDataUri(svg);
+        if (dataUri) {
+          return dataUri;
+        }
       }
     }
   } catch (err) {
@@ -66,7 +178,13 @@ function showProcessingToast(message: string) {
 }
 
 function installHeaderProcessingToasts(header: any) {
-  if (!header || header.__dvzNativeProjectProcessingToasts === '1' || header.__dvzProcessingToastsInstalled === '1') return;
+  if (
+    !header ||
+    header.__dvzNativeProjectProcessingToasts === '1' ||
+    header.__dvzProcessingToastsInstalled === '1'
+  ) {
+    return;
+  }
 
   if (typeof header.showLoadModal === 'function') {
     const originalShowLoadModal = header.showLoadModal.bind(header);
@@ -157,16 +275,26 @@ customElements.whenDefined('dataviz-tool-header').then(() => {
             showProcessingToast(t('processing.savePrep'));
             const state = store.getState();
             const serializableState = toSerializable(state);
+            const projectMeta = getCurrentProjectMeta();
+            const thumbnailDataUri =
+              getThumbnailDataUri() ||
+              extractThumbnailDataUri(serializableState) ||
+              projectMeta.thumbnailDataUri;
+            attachThumbnailDataUri(serializableState, thumbnailDataUri);
+            rememberProjectThumbnail(thumbnailDataUri);
             // Use data filename as default, fallback to previous project name or timestamp
-            const defaultName = getDataFilename() || currentProjectName;
+            const defaultName = getDataFilename() || projectMeta.name;
             const now = new Date();
             const pad = (n: number) => ('0' + n).slice(-2);
-            const fallbackName = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            const fallbackName = [
+              `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+              `${pad(now.getHours())}:${pad(now.getMinutes())}`
+            ].join(' ');
             (header as any).showSaveModal({
               name: defaultName || fallbackName,
               data: serializableState,
-              thumbnailDataUri: getThumbnailDataUri(),
-              existingProjectId: currentProjectId,
+              thumbnailDataUri,
+              existingProjectId: projectMeta.id,
             });
           },
           align: 'right'
@@ -188,9 +316,10 @@ customElements.whenDefined('dataviz-tool-header').then(() => {
     // Configure project management
     (header as any).setProjectConfig({
       appName: 'voyager2',
-      onProjectLoad: (projectData: any) => {
+      onProjectLoad: (projectData: any, meta?: any) => {
         try {
-          const newState = fromSerializable(projectData);
+          const projectPayload = rememberProjectLoad(projectData, meta);
+          const newState = fromSerializable(projectPayload);
           store.dispatch({
             type: SET_APPLICATION_STATE,
             payload: { state: newState }
@@ -200,8 +329,7 @@ customElements.whenDefined('dataviz-tool-header').then(() => {
         }
       },
       onProjectSave: (meta: { id: string; name: string }) => {
-        currentProjectId = meta.id;
-        if (meta.name) currentProjectName = meta.name;
+        rememberProjectSave(meta, getCurrentProjectMeta().thumbnailDataUri);
       }
     });
 
@@ -221,16 +349,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const hideElements = () => {
     // Hide original header
     const headers = document.querySelectorAll('div[class*="header__header"]');
-    for (let i = 0; i < headers.length; i++) {
-      (headers[i] as HTMLElement).style.display = 'none';
+    for (const header of Array.prototype.slice.call(headers) as HTMLElement[]) {
+      header.style.display = 'none';
     }
 
     // Hide original data selector button/container
     const dataSelectors = document.querySelectorAll('span[class*="data-selector"]');
-    for (let i = 0; i < dataSelectors.length; i++) {
+    for (const dataSelector of Array.prototype.slice.call(dataSelectors) as HTMLElement[]) {
       // Hide ONLY the button, not the modal content if it is appended to body (though usually modal is separate)
       // The data selector component wraps the button.
-      (dataSelectors[i] as HTMLElement).style.display = 'none';
+      dataSelector.style.display = 'none';
     }
   };
 

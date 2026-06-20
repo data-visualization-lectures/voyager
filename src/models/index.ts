@@ -25,6 +25,7 @@ export interface PersistentState {
   log: Log;
   relatedViews: RelatedViews;
   shelfPreview: ShelfPreview;
+  thumbnailDataUri?: string;
 }
 
 export interface UndoableStateBaseWithoutDataset {
@@ -103,11 +104,15 @@ export function fromSerializable(serializable: SerializableState): Readonly<Stat
     log,
     relatedViews,
     shelfPreview,
+    thumbnailDataUri,
     // Then the rest should be UndoableStateBaseWithoutDataset
     ...undoableStateBaseWithoutDataset
   } = serializable;
 
   const persistent: PersistentState = {bookmark, config, relatedViews, shelfPreview, log};
+  if (thumbnailDataUri) {
+    persistent.thumbnailDataUri = thumbnailDataUri;
+  }
 
   const undoableBase: UndoableStateBase = {
     ...undoableStateBaseWithoutDataset,
