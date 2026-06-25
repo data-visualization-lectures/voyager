@@ -1,8 +1,8 @@
 {
-  "main.js": "static/js/main.90b46d24.js",
-  "main.css": "static/css/main.e044df1e.css",
-  "main.js.map": "static/js/main.90b46d24.js.map",
-  "main.css.map": "static/css/main.e044df1e.css.map",
+  "main.js": "static/js/main.c3f692eb.js",
+  "main.css": "static/css/main.d861eae1.css",
+  "main.js.map": "static/js/main.c3f692eb.js.map",
+  "main.css.map": "static/css/main.d861eae1.css.map",
   "build/actions/bookmark.d.ts": "build/actions/bookmark.d.ts",
   "build/actions/config.d.ts": "build/actions/config.d.ts",
   "build/actions/custom-wildcard-field.d.ts": "build/actions/custom-wildcard-field.d.ts",
@@ -142,6 +142,8 @@
   "build/selectors/tab.test.d.ts": "build/selectors/tab.test.d.ts",
   "build/store/index.d.ts": "build/store/index.d.ts",
   "build/store/listener.d.ts": "build/store/listener.d.ts",
+  "build/thumbnail.d.ts": "build/thumbnail.d.ts",
+  "build/thumbnail.test.d.ts": "build/thumbnail.test.d.ts",
   "build/util.d.ts": "build/util.d.ts",
   "index.html": "index.html",
   "static/media/logo.png": "static/media/logo.2773f11a.png"

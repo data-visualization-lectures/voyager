@@ -7,16 +7,17 @@ import {isDiscrete, isFieldDef} from 'vega-lite/build/src/fielddef';
 import {SortField, SortOrder} from 'vega-lite/build/src/sort';
 import {TopLevelFacetedUnitSpec} from 'vega-lite/build/src/spec';
 import {BOOKMARK_MODIFY_NOTE, BookmarkAction} from '../../actions/bookmark';
-import {t} from '../../i18n';
 import {LogAction} from '../../actions/log';
 import {ActionHandler} from '../../actions/redux-action';
 import {ResultAction} from '../../actions/result';
 import {ShelfAction, SPEC_LOAD} from '../../actions/shelf';
 import {SHELF_PREVIEW_DISABLE, SHELF_PREVIEW_SPEC, ShelfPreviewAction} from '../../actions/shelf-preview';
 import {PLOT_HOVER_MIN_DURATION} from '../../constants';
+import {t} from '../../i18n';
 import {Bookmark} from '../../models/bookmark';
 import {PlotFieldInfo, ResultPlot} from '../../models/result';
 import {ShelfFilter, toTransforms} from '../../models/shelf/filter';
+import {forgetSpecifiedView, rememberSpecifiedView} from '../../thumbnail';
 import {Field} from '../field/index';
 import {Logger} from '../util/util.logger';
 import {VegaLite} from '../vega-lite/index';
@@ -54,6 +55,7 @@ export class PlotBase extends React.PureComponent<PlotProps, PlotState> {
 
   private hoverTimeoutId: number;
   private previewTimeoutId: number;
+  private specifiedView: any;
   private vegaLiteWrapper: HTMLElement;
   private plotLogger: Logger;
 
@@ -137,7 +139,12 @@ export class PlotBase extends React.PureComponent<PlotProps, PlotState> {
           onMouseEnter={this.onMouseEnter}
           onMouseLeave={this.onMouseLeave}
         >
-          <VegaLite spec={spec} logger={this.plotLogger} data={data} />
+          <VegaLite
+            spec={spec}
+            logger={this.plotLogger}
+            data={data}
+            viewRunAfter={isPlotListItem ? undefined : this.onSpecifiedViewRun}
+          />
         </div>
         {notesDiv}
       </div>
@@ -146,6 +153,12 @@ export class PlotBase extends React.PureComponent<PlotProps, PlotState> {
 
   public componentWillUnmount() {
     this.clearHoverTimeout();
+    forgetSpecifiedView(this.specifiedView);
+  }
+
+  private onSpecifiedViewRun = (view: any) => {
+    this.specifiedView = view;
+    rememberSpecifiedView(view);
   }
 
   private renderFields() {
