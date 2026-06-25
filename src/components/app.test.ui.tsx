@@ -9,9 +9,28 @@ import {Provider} from 'react-redux';
 import {Data} from 'vega-lite/build/src/data';
 import {FacetedCompositeUnitSpec, TopLevel} from 'vega-lite/build/src/spec';
 import {configureStore} from '../store';
-import {App} from './app';
+import {App, getProjectIdFromSearch, getSearchParamFromSearch} from './app';
 
 const DEFAULT_TIMEOUT_LENGTH = 300;
+
+describe('project route query', () => {
+  it('reads projectId from the URL search', () => {
+    expect(getProjectIdFromSearch('?projectId=project-123')).toEqual('project-123');
+  });
+
+  it('does not read legacy project_id from the URL search', () => {
+    expect(getProjectIdFromSearch('?project_id=legacy-project')).toBeNull();
+  });
+
+  it('reads projectId when other query parameters already exist', () => {
+    expect(getProjectIdFromSearch('?chart=bar-chart-race&projectId=project-123')).toEqual('project-123');
+  });
+
+  it('keeps data_url readable', () => {
+    const dataUrl = 'https://example.com/data.csv';
+    expect(getSearchParamFromSearch(`?data_url=${encodeURIComponent(dataUrl)}`, 'data_url')).toEqual(dataUrl);
+  });
+});
 
 describe('Voyager', () => {
   describe('instantiation via component', () => {

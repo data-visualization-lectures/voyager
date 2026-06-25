@@ -21,6 +21,40 @@ export interface Props extends React.Props<App> {
   dispatch: Dispatch<State>;
 }
 
+function decodeSearchComponent(value: string): string {
+  try {
+    return decodeURIComponent(value.replace(/\+/g, ' '));
+  } catch (e) {
+    return value;
+  }
+}
+
+export function getSearchParamFromSearch(search: string, name: string): string | null {
+  if (typeof URLSearchParams !== 'undefined') {
+    return new URLSearchParams(search).get(name);
+  }
+
+  const query = search.charAt(0) === '?' ? search.slice(1) : search;
+  if (!query) {
+    return null;
+  }
+
+  for (const pair of query.split('&')) {
+    const separatorIndex = pair.indexOf('=');
+    const rawKey = separatorIndex === -1 ? pair : pair.slice(0, separatorIndex);
+    if (decodeSearchComponent(rawKey) === name) {
+      const rawValue = separatorIndex === -1 ? '' : pair.slice(separatorIndex + 1);
+      return decodeSearchComponent(rawValue);
+    }
+  }
+
+  return null;
+}
+
+export function getProjectIdFromSearch(search: string): string | null {
+  return getSearchParamFromSearch(search, 'projectId');
+}
+
 export class App extends React.PureComponent<Props, {}> {
 
   constructor(props: any) {
@@ -80,10 +114,8 @@ export class App extends React.PureComponent<Props, {}> {
   }
 
   public async componentDidMount() {
-    const params = new URLSearchParams(window.location.search);
-
     // ?data_url= support
-    const dataUrl = params.get('data_url');
+    const dataUrl = getSearchParamFromSearch(window.location.search, 'data_url');
     if (dataUrl) {
       this.showProcessingToast(t('processing.sample'));
       this.props.dispatch(datasetLoad(
@@ -94,7 +126,7 @@ export class App extends React.PureComponent<Props, {}> {
       return;
     }
 
-    const projectId = params.get('projectId');
+    const projectId = getProjectIdFromSearch(window.location.search);
 
     if (projectId) {
       console.log('Found projectId in URL. Checking authentication...');
