@@ -94,10 +94,10 @@ export class App extends React.PureComponent<Props, {}> {
       return;
     }
 
-    const projectId = params.get('project_id');
+    const projectId = params.get('projectId');
 
     if (projectId) {
-      console.log('Found project_id in URL. Checking authentication...');
+      console.log('Found projectId in URL. Checking authentication...');
 
       // @ts-ignore
       const supabase = window.datavizSupabase;
