@@ -178,6 +178,265 @@ const RULES: TranslationRule[] = [
   {
     pattern: /^Cannot stack non-linear scale \((.+)\)$/,
     toJa: match => '非線形スケール（' + match[1] + '）はスタックできません'
+  },
+  {
+    pattern: /^Shape channel should be used with nominal data or geojson only$/,
+    toJa: () => 'shape チャネルは nominal データまたは geojson のみで使ってください。'
+  },
+  {
+    pattern: /^Channel (\S+) should not be used with discrete field\.$/,
+    toJa: match => 'チャネル ' + match[1] + ' は離散フィールドでは使えません。'
+  },
+  {
+    pattern: /^Channel (\S+) should not be used with (\S+) field\.$/,
+    toJa: match => 'チャネル ' + match[1] + ' は ' + match[2] + ' フィールドでは使えません。'
+  },
+  {
+    pattern: /^Channel order is inappropriate for nominal field, which has no inherent order\.$/,
+    toJa: () => 'order チャネルは順序を持たない nominal フィールドには適していません。'
+  },
+  {
+    pattern: /^Cannot use a fixed value of "rangeStep" when "autosize" is "fit"\.$/,
+    toJa: () => 'autosize が "fit" のときは "rangeStep" に固定値を使えません。'
+  },
+  {
+    pattern: /^Scale bindings are currently only supported for scales with unbinned, continuous domains\.$/,
+    toJa: () => 'スケールのバインディングは、現在ビン化されていない連続ドメインのスケールでのみ使えます。'
+  },
+  {
+    pattern: /^Axes cannot be shared in concatenated views\.$/,
+    toJa: () => '連結ビューでは軸を共有できません。'
+  },
+  {
+    pattern: /^Axes cannot be shared in repeated views\.$/,
+    toJa: () => 'repeat ビューでは軸を共有できません。'
+  },
+  {
+    pattern: /^Cannot set title "anchor" for a (.+) spec$/,
+    toJa: match => match[1] + ' 仕様では title の "anchor" を設定できません'
+  },
+  {
+    pattern: /^Unrecognized parse "([^"]+)"\.$/,
+    toJa: match => '未知の parse "' + match[1] + '" です。'
+  },
+  {
+    pattern: /^An ancestor parsed field "([^"]+)" as (.+) but a child wants to parse the field as (.+)\.$/,
+    toJa: match => '祖先がフィールド "' + match[1] + '" を ' + match[2] +
+      ' として解析しましたが、子は ' + match[3] + ' として解析しようとしています。'
+  },
+  {
+    pattern: /^Ignoring an invalid transform: (.+)\.$/,
+    toJa: match => '不正な変換を無視します: ' + match[1] + '。'
+  },
+  {
+    pattern: new RegExp(
+      '^If "from\\.fields" is not specified, "as" has to be a string that specifies ' +
+      'the key to be used for the data from the secondary source\\.$'
+    ),
+    toJa: () => '"from.fields" が指定されていない場合、"as" は二次ソースのデータのキーを示す文字列である必要があります。'
+  },
+  {
+    pattern: /^Layer's shared (.+) channel (is|are) overriden$/,
+    toJa: match => 'レイヤーで共有されている ' + match[1] + ' チャネルは上書きされました'
+  },
+  {
+    pattern: /^Layer's shared projection (.+) is overridden by a child projection (.+)\.$/,
+    toJa: match => 'レイヤーで共有されている投影 ' + match[1] + ' は、子の投影 ' + match[2] + ' で上書きされました。'
+  },
+  {
+    pattern: /^Channel (\S+) is a (string|number|boolean)\. Converted to \{value: (.+)\}\.$/,
+    toJa: match => 'チャネル ' + match[1] + ' は ' + match[2] +
+      ' です。{value: ' + match[3] + '} に変換しました。'
+  },
+  {
+    pattern: /^Dropping color (encoding|property) as the plot also has (fill and stroke|fill|stroke)$/,
+    toJa: match => {
+      const kind = match[1] === 'encoding' ? 'エンコーディング' : 'プロパティ';
+      const extras = match[2] === 'fill and stroke' ? 'fill と stroke' : match[2];
+      return 'プロットに ' + extras + ' もあるため、color の' + kind + 'を除外しました';
+    }
+  },
+  {
+    pattern: /^Dropping (.+) from channel "([^"]+)" since it does not contain data field or value\.$/,
+    toJa: match => 'データフィールドも値も含まないため、チャネル "' + match[2] + '" から ' +
+      match[1] + ' を除外しました。'
+  },
+  {
+    pattern: /^(\S+)-encoding with type (\S+) is deprecated\. Replacing with (\S+)-encoding\.$/,
+    toJa: match => 'タイプ ' + match[2] + ' の ' + match[1] +
+      ' エンコーディングは非推奨です。' + match[3] + ' エンコーディングに置き換えます。'
+  },
+  {
+    pattern: /^Bar mark should not be used with point scale when rangeStep is null\. Please use band scale instead\.$/,
+    toJa: () => 'rangeStep が null のとき、bar マークは point スケールと組み合わせないでください。' +
+      '代わりに band スケールを使ってください。'
+  },
+  {
+    pattern: new RegExp(
+      '^Line mark is for continuous lines and thus cannot be used with (x2 and y2|x2|y2)\\. ' +
+      'We will use the rule mark \\(line segments\\) instead\\.$'
+    ),
+    toJa: match => 'line マークは連続線用のため ' + match[1] +
+      ' とは組み合わせられません。代わりに rule マーク（線分）を使います。'
+  },
+  {
+    pattern: /^custom domain scale cannot be unioned with default field-based domain$/,
+    toJa: () => 'カスタムドメインのスケールは、既定のフィールドベースドメインと統合できません'
+  },
+  {
+    pattern: /^Cannot use the scale property "([^"]+)" with non-color channel\.$/,
+    toJa: match => 'スケールプロパティ "' + match[1] + '" は color 以外のチャネルでは使えません。'
+  },
+  {
+    pattern: /^Using unaggregated domain with raw field has no effect \((.+)\)\.$/,
+    toJa: match => '未集計ドメインを生フィールドと使う効果はありません（' + match[1] + '）。'
+  },
+  {
+    pattern: new RegExp(
+      '^Unaggregated domain not applicable for "([^"]+)" since it produces values ' +
+      'outside the origin domain of the source data\\.$'
+    ),
+    toJa: match => '"' + match[1] + '" は元データのドメイン外の値を出すため、未集計ドメインは適用できません。'
+  },
+  {
+    pattern: /^Unaggregated domain is currently unsupported for log scale \((.+)\)\.$/,
+    toJa: match => '未集計ドメインは現在、対数スケールでは使えません（' + match[1] + '）。'
+  },
+  {
+    pattern: /^Using size field when (x|y)-channel has a band scale is not supported\.$/,
+    toJa: match => match[1] + ' チャネルが band スケールのとき、size フィールドは使えません。'
+  },
+  {
+    pattern: /^Cannot apply size to non-oriented mark "([^"]+)"\.$/,
+    toJa: match => '向きのないマーク "' + match[1] + '" には size を適用できません。'
+  },
+  {
+    pattern: /^rangeStep for "([^"]+)" is dropped as top-level (width|height) is provided\.$/,
+    toJa: match => 'トップレベルの ' + match[2] + ' が指定されているため、"' +
+      match[1] + '" の rangeStep は除外されました。'
+  },
+  {
+    pattern: /^FieldDef does not work with "([^"]+)" scale\. We are using "([^"]+)" scale instead\.$/,
+    toJa: match => 'FieldDef は "' + match[1] + '" スケールと組み合わせられません。代わりに "' +
+      match[2] + '" スケールを使います。'
+  },
+  {
+    pattern: /^(\S+)-scale's "([^"]+)" is dropped as it does not work with (\S+) scale\.$/,
+    toJa: match => match[1] + ' スケールの "' + match[2] + '" は ' + match[3] +
+      ' スケールと組み合わせられないため除外されました。'
+  },
+  {
+    pattern: /^Conflicting (.+) property "([^"]+)" \((.+) and (.+)\)\. {2}Using (.+)\.$/,
+    toJa: match => '競合する ' + match[1] + ' プロパティ "' + match[2] + '"（' + match[3] +
+      ' と ' + match[4] + '）があります。' + match[5] + ' を使います。'
+  },
+  {
+    pattern: new RegExp(
+      '^Setting the scale to be independent for "([^"]+)" means we also have to set ' +
+      'the guide \\(axis or legend\\) to be independent\\.$'
+    ),
+    toJa: match => '"' + match[1] + '" のスケールを独立させる場合、ガイド（軸または凡例）も独立させる必要があります。'
+  },
+  {
+    pattern: /^Cannot set (\S+)-scale's "domain" as it is binned\. Please use "bin"'s "extent" instead\.$/,
+    toJa: match => match[1] +
+      ' スケールはビン化されているため "domain" を設定できません。代わりに "bin" の "extent" を使ってください。'
+  },
+  {
+    pattern: /^Dropping sort property (.+) as unioned domains only support boolean or op 'count'\.$/,
+    toJa: match => '統合ドメインは boolean または演算子 \'count\' のみをサポートするため、sort プロパティ ' +
+      match[1] + ' を除外しました。'
+  },
+  {
+    pattern: /^Unable to merge domains$/,
+    toJa: () => 'ドメインを統合できません'
+  },
+  {
+    pattern: /^Domains that should be unioned has conflicting sort properties\. Sort will be set to true\.$/,
+    toJa: () => '統合すべきドメインの sort プロパティが競合しています。sort は true に設定されます。'
+  },
+  {
+    pattern: /^Invalid channel for axis\.$/,
+    toJa: () => '軸に対する不正なチャネルです。'
+  },
+  {
+    pattern: /^Stacking is applied even though the aggregate function is non-summative \("([^"]+)"\)$/,
+    toJa: match => '集計関数が加算的でない（"' + match[1] + '"）にもかかわらず、スタックが適用されます'
+  },
+  {
+    pattern: /^Time unit "([^"]+)" is not supported\. We are replacing it with (.+)\.$/,
+    toJa: match => '時間単位 "' + match[1] + '" はサポートされていません。' + match[2] + ' に置き換えます。'
+  },
+  {
+    pattern: /^Dropping day from datetime (.+) as day cannot be combined with other units\.$/,
+    toJa: match => 'day は他の単位と組み合わせられないため、datetime ' + match[1] + ' から day を除外しました。'
+  },
+  {
+    pattern: /^Invalid ([^:]+): (.+)$/,
+    toJa: match => '不正な ' + match[1] + ': ' + match[2]
+  },
+  {
+    pattern: /^Unknown field for \$\{channel\}\. {2}Cannot calculate view size\.$/,
+    toJa: () => 'フィールドが不明なため、ビューサイズを計算できません。'
+  },
+  {
+    pattern: /^The same selection must be used to override scale domains in a layered view\.$/,
+    toJa: () => 'レイヤービューでスケールドメインを上書きする場合は、同じ選択を使う必要があります。'
+  },
+  {
+    pattern: new RegExp([
+      '^Detected faceted independent scales that union domain of multiple fields from different data sources\\.',
+      ' {2}We will use the first field\\.',
+      ' {2}The result view size may be incorrect\\.$'
+    ].join('')),
+    toJa: () => '異なるデータソースの複数フィールドのドメインを統合する、ファセットされた独立スケールを検出しました。' +
+      '最初のフィールドを使います。結果のビューサイズが正しくないことがあります。'
+  },
+  {
+    pattern: new RegExp([
+      '^Detected faceted independent scales that union domain of identical fields from different source detected\\.',
+      ' {2}We will assume that this is the same field from a different fork of the same data source\\.',
+      ' {2}However, if this is not case, the result view size maybe incorrect\\.$'
+    ].join('')),
+    toJa: () => '異なるソースの同一フィールドのドメインを統合する、ファセットされた独立スケールを検出しました。' +
+      '同一データソースの別フォークの同じフィールドとみなします。そうでない場合、結果のビューサイズが正しくないことがあります。'
+  },
+  {
+    pattern: new RegExp([
+      '^Detected faceted independent scales that union domain of multiple fields from the same data source\\.',
+      ' {2}We will use the first field\\.',
+      ' {2}The result view size may be incorrect\\.$'
+    ].join('')),
+    toJa: () => '同一データソースの複数フィールドのドメインを統合する、ファセットされた独立スケールを検出しました。' +
+      '最初のフィールドを使います。結果のビューサイズが正しくないことがあります。'
+  },
+  {
+    pattern: /^Interval selections only support x and y encoding channels\.$/,
+    toJa: () => 'interval 選択は x と y のエンコーディングチャネルのみをサポートします。'
+  },
+  {
+    pattern: /^(.+) is not an ordered event stream for interval selections$/,
+    toJa: match => match[1] + ' は interval 選択の順序付きイベントストリームではありません'
+  },
+  {
+    pattern: /^Use "bind": "scales" to setup a binding for scales and selections within the same view\.$/,
+    toJa: () => '同一ビュー内でスケールと選択をバインドするには "bind": "scales" を使ってください。'
+  },
+  {
+    pattern: new RegExp(
+      '^A "field" or "encoding" must be specified when using a selection as a scale domain\\. ' +
+      'Using "field": (.+)\\.$'
+    ),
+    toJa: match => '選択をスケールドメインとして使う場合は "field" または "encoding" の指定が必要です。"field": ' +
+      match[1] + ' を使います。'
+  },
+  {
+    pattern: /^Continuous axis should not have customized aggregation function (.+)$/,
+    toJa: match => '連続軸にカスタム集計関数 ' + match[1] + ' を指定しないでください'
+  },
+  {
+    pattern: /^Only use this method with binned field defs$/,
+    toJa: () => 'このメソッドはビン化されたフィールド定義でのみ使ってください'
   }
 ];
 

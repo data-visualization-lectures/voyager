@@ -3,7 +3,7 @@
   z-index: 1000;
   max-width: 500px;
   position: absolute;
-  top: 80px;
+  top: calc(80px + var(--common-header-height, 0px) + var(--tool-header-height, 0px));
   padding: 15px;
   border: 1px solid transparent;
   border-radius: 4px;
@@ -30,7 +30,8 @@
 .warning-pane {
   @extend .log-pane;
   background-color: #fff9e5;
-  color: #FFCC00;
+  color: #7a5b00;
+  border-color: #e6c35c;
 }
 
 .close {
