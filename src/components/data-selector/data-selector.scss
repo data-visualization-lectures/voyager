@@ -5,7 +5,7 @@
 .modal {
   font-size: 12px;
   display: flex;
-  margin: 50px auto;
+  margin: calc(50px + var(--common-header-height, 0px) + var(--tool-header-height, 0px)) auto 50px;
   width: calc( 100% - 100px);
   height: inherit;
   padding: 6px;
