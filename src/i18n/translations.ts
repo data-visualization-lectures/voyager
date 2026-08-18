@@ -1,31 +1,9 @@
 export interface Translations {
-  // header
-  'header.saveProject': string;
-  'header.loadProject': string;
-  'header.notLoggedInSaveLocal': string;
-  'header.enterProjectName': string;
-  'header.savedToCloud': string;
-  'header.cloudSaveFailed': string;
-  'header.projectLoaded': string;
-  'header.projectLoadFailed': string;
-  'header.localSaveFailed': string;
-  'header.notLoggedInLoadLocal': string;
-  'header.fileLoadFailed': string;
   'processing.projectList': string;
   'processing.projectLoad': string;
   'processing.projectSave': string;
   'processing.savePrep': string;
   'processing.sample': string;
-
-  // project-load-modal
-  'modal.openCloudProject': string;
-  'modal.loading': string;
-  'modal.noSavedProjects': string;
-  'modal.confirmDelete': string;
-  'modal.deleteFailed': string;
-  'modal.loadFailed': string;
-  'modal.open': string;
-  'modal.delete': string;
 
   // undo-redo
   'undoRedo.undo': string;
@@ -78,7 +56,6 @@ export interface Translations {
   // data-selector
   'dataSelector.close': string;
   'dataSelector.addDataset': string;
-  'dataSelector.changeDataset': string;
   'dataSelector.pasteOrUpload': string;
   'dataSelector.fromUrl': string;
   'dataSelector.file': string;

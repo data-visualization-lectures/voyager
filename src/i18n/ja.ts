@@ -1,33 +1,11 @@
 import {Translations} from './translations';
 
 export const ja: Translations = {
-  // header
-  'header.saveProject': 'プロジェクト・ファイルの保存',
-  'header.loadProject': 'プロジェクト・ファイルの読込',
-  'header.notLoggedInSaveLocal': 'ログインしていません。ローカルファイルとして保存しますか？\n（クラウド保存するには https://app.dataviz.jp でログインしてください）',
-  'header.enterProjectName': '保存するプロジェクト名を入力してください',
-  'header.savedToCloud': 'クラウドにプロジェクトを保存しました！',
-  'header.cloudSaveFailed': 'クラウド保存に失敗しました：{error}',
-  'header.projectLoaded': 'プロジェクトを読み込みました。',
-  'header.projectLoadFailed': 'プロジェクトデータの読み込みに失敗しました。',
-  'header.localSaveFailed': 'プロジェクトの保存に失敗しました。',
-  'header.notLoggedInLoadLocal': 'ログインしていません。ローカルファイルから読み込みますか？',
-  'header.fileLoadFailed': 'プロジェクトファイルの読み込みに失敗しました。ファイル形式を確認してください。',
   'processing.projectList': 'プロジェクト一覧を読み込み中です',
   'processing.projectLoad': 'プロジェクトを読み込み中です',
   'processing.projectSave': 'プロジェクトを保存中です',
   'processing.savePrep': '保存準備中です',
   'processing.sample': 'サンプルデータを読み込み中です',
-
-  // project-load-modal
-  'modal.openCloudProject': 'クラウドプロジェクトを開く',
-  'modal.loading': '読み込み中...',
-  'modal.noSavedProjects': '保存されたプロジェクトはありません。',
-  'modal.confirmDelete': 'プロジェクト「{name}」を削除してもよろしいですか？',
-  'modal.deleteFailed': '削除に失敗しました: {error}',
-  'modal.loadFailed': '読み込みに失敗しました: {error}',
-  'modal.open': '開く',
-  'modal.delete': '削除',
 
   // undo-redo
   'undoRedo.undo': '元に戻す',
@@ -80,7 +58,6 @@ export const ja: Translations = {
   // data-selector
   'dataSelector.close': '閉じる',
   'dataSelector.addDataset': 'データセットを追加',
-  'dataSelector.changeDataset': 'データセットを変更',
   'dataSelector.pasteOrUpload': 'データを貼り付けまたはアップロード',
   'dataSelector.fromUrl': 'URLから',
   'dataSelector.file': 'ファイル',

@@ -1,33 +1,11 @@
 import {Translations} from './translations';
 
 export const en: Translations = {
-  // header
-  'header.saveProject': 'Save Project',
-  'header.loadProject': 'Load Project',
-  'header.notLoggedInSaveLocal': 'You are not logged in. Save as a local file?\n(To save to the cloud, please log in at https://app.dataviz.jp)',
-  'header.enterProjectName': 'Enter a project name to save',
-  'header.savedToCloud': 'Project saved to cloud!',
-  'header.cloudSaveFailed': 'Cloud save failed: {error}',
-  'header.projectLoaded': 'Project loaded.',
-  'header.projectLoadFailed': 'Failed to load project data.',
-  'header.localSaveFailed': 'Failed to save project.',
-  'header.notLoggedInLoadLocal': 'You are not logged in. Load from a local file?',
-  'header.fileLoadFailed': 'Failed to load project file. Please check the file format.',
   'processing.projectList': 'Loading project list...',
   'processing.projectLoad': 'Loading project...',
   'processing.projectSave': 'Saving project...',
   'processing.savePrep': 'Preparing save...',
   'processing.sample': 'Loading sample data...',
-
-  // project-load-modal
-  'modal.openCloudProject': 'Open Cloud Project',
-  'modal.loading': 'Loading...',
-  'modal.noSavedProjects': 'No saved projects.',
-  'modal.confirmDelete': 'Delete project "{name}"?',
-  'modal.deleteFailed': 'Delete failed: {error}',
-  'modal.loadFailed': 'Load failed: {error}',
-  'modal.open': 'Open',
-  'modal.delete': 'Delete',
 
   // undo-redo
   'undoRedo.undo': 'Undo',
@@ -80,7 +58,6 @@ export const en: Translations = {
   // data-selector
   'dataSelector.close': 'close',
   'dataSelector.addDataset': 'Add Dataset',
-  'dataSelector.changeDataset': 'Change Dataset',
   'dataSelector.pasteOrUpload': 'Paste or Upload Data',
   'dataSelector.fromUrl': 'From URL',
   'dataSelector.file': 'File',

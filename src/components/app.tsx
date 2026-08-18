@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import {Dispatch} from 'redux';
 import {ActionCreators} from 'redux-undo';
@@ -8,8 +7,13 @@ import {datasetLoad, SET_APPLICATION_STATE, SET_CONFIG} from '../actions';
 import {SPEC_LOAD} from '../actions/shelf';
 import {t} from '../i18n';
 import {VoyagerConfig} from '../models/config';
-import {fromSerializable, State} from '../models/index';
-import {rememberProjectLoad} from '../project-state';
+import {State} from '../models/index';
+import {
+  applyProjectPayload,
+  getToolHeader,
+  installHeaderProcessingToasts,
+  showProcessingToast
+} from '../tool-header';
 import {AppRoot} from './app-root';
 
 export interface Props extends React.Props<App> {
@@ -56,6 +60,7 @@ export function getProjectIdFromSearch(search: string): string | null {
 }
 
 export class App extends React.PureComponent<Props, {}> {
+  private isLoadingProject = false;
 
   constructor(props: any) {
     super(props);
@@ -73,51 +78,11 @@ export class App extends React.PureComponent<Props, {}> {
     this.update(this.props);
   }
 
-  // Flag to prevent duplicate loading
-  private isLoadingProject = false;
-
-  private showProcessingToast(message: string) {
-    const header = document.querySelector('dataviz-tool-header');
-    if (header && typeof (header as any).showMessage === 'function') {
-      (header as any).showMessage(message, 'info', 5000);
-    }
-  }
-
-  private installHeaderProcessingToasts(header: any) {
-    if (!header || header.__dvzNativeProjectProcessingToasts === '1' || header.__dvzProcessingToastsInstalled === '1') return;
-
-    if (typeof header.showLoadModal === 'function') {
-      const originalShowLoadModal = header.showLoadModal.bind(header);
-      header.showLoadModal = (...args: any[]) => {
-        this.showProcessingToast(t('processing.projectList'));
-        return originalShowLoadModal(...args);
-      };
-    }
-
-    if (typeof header.loadProject === 'function') {
-      const originalLoadProject = header.loadProject.bind(header);
-      header.loadProject = (...args: any[]) => {
-        this.showProcessingToast(t('processing.projectLoad'));
-        return originalLoadProject(...args);
-      };
-    }
-
-    if (typeof header.saveProject === 'function') {
-      const originalSaveProject = header.saveProject.bind(header);
-      header.saveProject = (...args: any[]) => {
-        this.showProcessingToast(t('processing.projectSave'));
-        return originalSaveProject(...args);
-      };
-    }
-
-    header.__dvzProcessingToastsInstalled = '1';
-  }
-
   public async componentDidMount() {
     // ?data_url= support
     const dataUrl = getSearchParamFromSearch(window.location.search, 'data_url');
     if (dataUrl) {
-      this.showProcessingToast(t('processing.sample'));
+      showProcessingToast(t('processing.sample'));
       this.props.dispatch(datasetLoad(
         (dataUrl.split('/').pop() || '').replace(/\.[^.]+$/, '') || 'data',
         { url: dataUrl } as any
@@ -129,8 +94,6 @@ export class App extends React.PureComponent<Props, {}> {
     const projectId = getProjectIdFromSearch(window.location.search);
 
     if (projectId) {
-      console.log('Found projectId in URL. Checking authentication...');
-
       // @ts-ignore
       const supabase = window.datavizSupabase;
       if (!supabase) {
@@ -144,8 +107,6 @@ export class App extends React.PureComponent<Props, {}> {
       if (data.session) {
         await this.loadCloudProject(projectId);
       } else {
-        // Wait for auth state change
-        console.log('Waiting for authentication...');
         const {data: {subscription}} = supabase.auth.onAuthStateChange((event: string, session: any) => {
           if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
             if (session) {
@@ -158,35 +119,28 @@ export class App extends React.PureComponent<Props, {}> {
     }
   }
 
+  public render() {
+    return <AppRoot />;
+  }
+
   private async loadCloudProject(projectId: string) {
-    if (this.isLoadingProject) return;
+    if (this.isLoadingProject) {
+      return;
+    }
     this.isLoadingProject = true;
 
-    console.log(`Loading project ${projectId}...`);
-
     try {
-      const header = document.querySelector('dataviz-tool-header');
-      if (!header) {
+      const header = getToolHeader();
+      if (!header || typeof header.loadProject !== 'function') {
         throw new Error('dataviz-tool-header not found');
       }
-      this.installHeaderProcessingToasts(header);
-      const projectData = await (header as any).loadProject(projectId);
-      const projectPayload = rememberProjectLoad(projectData, {projectId});
-      const newState = fromSerializable(projectPayload);
-
-      this.props.dispatch({
-        type: SET_APPLICATION_STATE,
-        payload: {
-          state: newState
-        }
-      });
+      installHeaderProcessingToasts(header);
+      const projectData = await header.loadProject(projectId);
+      applyProjectPayload(this.props.dispatch, projectData, {projectId});
 
       // Remove query param from URL without reload
       const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
       window.history.pushState({path: newUrl}, '', newUrl);
-
-      console.log('Project loaded successfully.');
-
     } catch (e) {
       console.error("Failed to load project from URL:", e);
       let msg = e.message;
@@ -197,10 +151,6 @@ export class App extends React.PureComponent<Props, {}> {
     } finally {
       this.isLoadingProject = false;
     }
-  }
-
-  public render() {
-    return <AppRoot />;
   }
 
   private update(nextProps: Props) {

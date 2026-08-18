@@ -3,10 +3,8 @@ import * as CSSModules from 'react-css-modules';
 import { connect } from 'react-redux';
 
 import Modal from 'react-modal';
-// import {default as modal} from 'react-modal';
 import { Tab, TabList, TabPanel, Tabs } from 'react-tabs';
 import * as vega from 'vega';
-import { NamedData } from 'vega-lite/build/src/data';
 
 import * as styles from './data-selector.scss';
 
@@ -17,9 +15,9 @@ import {
   datasetLoad,
 } from '../../actions';
 import { t } from '../../i18n';
-import { DEFAULT_DATASETS } from '../../constants';
 import { Dataset, State } from '../../models';
 import { selectDataset } from '../../selectors';
+import { OPEN_DATA_SELECTOR_EVENT } from '../../tool-header';
 
 export interface DataSelectorOwnProps {
   title: string;
@@ -46,15 +44,21 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
 
     this.state = { modalIsOpen: false, dataText: '', dataName: '', dataUrl: '', fileType: undefined };
 
-    this.onDatasetChange = this.onDatasetChange.bind(this);
     this.openModal = this.openModal.bind(this);
     this.closeModal = this.closeModal.bind(this);
-    this.renderDataset = this.renderDataset.bind(this);
     this.onFileChange = this.onFileChange.bind(this);
     this.onDataTextSubmit = this.onDataTextSubmit.bind(this);
     this.handleTextChange = this.handleTextChange.bind(this);
     this.handleFileTypeChange = this.handleFileTypeChange.bind(this);
     this.onDataUrlSubmit = this.onDataUrlSubmit.bind(this);
+  }
+
+  public componentDidMount() {
+    document.addEventListener(OPEN_DATA_SELECTOR_EVENT, this.openModal);
+  }
+
+  public componentWillUnmount() {
+    document.removeEventListener(OPEN_DATA_SELECTOR_EVENT, this.openModal);
   }
 
   public render() {
@@ -75,16 +79,9 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
           </div>
           <Tabs className={styles['react-tabs']}>
             <TabList className={styles['tab-list']}>
-              {/* <Tab className={styles.tab}>データセットを変更</Tab> */}
               <Tab className={styles.tab}>{t('dataSelector.pasteOrUpload')}</Tab>
               <Tab className={styles.tab}>{t('dataSelector.fromUrl')}</Tab>
             </TabList>
-
-            {/*
-            <TabPanel className={styles['tab-panel']}>
-              {this.renderDatasetPanel()}
-            </TabPanel>
-            */}
             <TabPanel className={styles['tab-panel']}>
               <div>
                 {this.renderUploadPanel()}
@@ -97,28 +94,6 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
           </Tabs>
         </Modal>
       </span>
-    );
-  }
-
-  private renderDataset(dataset: NamedData) {
-    const selected = (dataset.name === this.props.data.name) ? styles['element-selected'] : null;
-
-    return (
-      <li key={dataset.name} className={`${styles['dataset-list-element']} ${selected}`} >
-        <a onClick={this.onDatasetChange.bind(this, dataset)}>
-          <i className="fa fa-database" /> {dataset.name}
-        </a>
-      </li>
-    );
-  }
-
-  private renderDatasetPanel() {
-    return (
-      <div>
-        <ul styleName='dataset-list'>
-          {DEFAULT_DATASETS.map(this.renderDataset)}
-        </ul>
-      </div>
     );
   }
 
@@ -199,11 +174,6 @@ export class DataSelectorBase extends React.PureComponent<DataSelectorProps, Dat
         <button onClick={this.onDataTextSubmit}>{t('dataSelector.addData')}</button>
       </div>
     );
-  }
-
-  private onDatasetChange(dataset: NamedData) {
-    this.props.handleAction(datasetLoad(dataset.name, dataset));
-    this.closeModal();
   }
 
   private onFileChange(event: any) {
