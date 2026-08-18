@@ -3,6 +3,7 @@ import * as CSSModules from 'react-css-modules';
 import {connect} from 'react-redux';
 import {LOG_ERRORS_CLEAR, LOG_WARNINGS_CLEAR, LogAction} from '../../actions/log';
 import {ActionHandler, createDispatchHandler} from '../../actions/redux-action';
+import {localizeLogMessage} from '../../i18n/vega-lite-log';
 import {State} from '../../models/index';
 import {Log, WarningLevel} from '../../models/log';
 import {selectLog} from '../../selectors/index';
@@ -33,7 +34,7 @@ export class LogPaneBase extends React.PureComponent<LogPaneProps, {}> {
         <ul>
           {errors.map((error, index) => {
             return (
-              <li key={index}>{error}</li>
+              <li key={index}>{localizeLogMessage(error)}</li>
             );
           })}
         </ul>
@@ -64,7 +65,7 @@ export class LogPaneBase extends React.PureComponent<LogPaneProps, {}> {
                               level: WarningLevel): JSX.Element[] {
     return warnings[level].map((warning, index: number) => {
       return (
-        <li key={index}>[{level.toUpperCase()}] {warning}</li>
+        <li key={index}>[{level.toUpperCase()}] {localizeLogMessage(warning)}</li>
       );
     });
   }

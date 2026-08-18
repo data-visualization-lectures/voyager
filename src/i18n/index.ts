@@ -17,6 +17,10 @@ function detectLocale(): 'ja' | 'en' {
 const currentLocale = detectLocale();
 const dictionaries: {[locale: string]: Translations} = {ja, en};
 
+export function getLocale(): 'ja' | 'en' {
+  return currentLocale;
+}
+
 // Set lang attribute on <html> so native browser UI (e.g. <input type="file">) matches the locale
 if (typeof document !== 'undefined' && document.documentElement) {
   document.documentElement.lang = currentLocale;
